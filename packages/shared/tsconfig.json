@@ -1,0 +1,7 @@
+{
+  "extends": "@rideujap/tsconfig/node.json",
+  "compilerOptions": {
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}

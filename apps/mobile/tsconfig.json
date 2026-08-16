@@ -1,0 +1,7 @@
+{
+  "extends": "@rideujap/tsconfig/react-native.json",
+  "compilerOptions": {
+    "types": ["react", "react-native"]
+  },
+  "include": ["App.tsx", "**/*.ts", "**/*.tsx"]
+}

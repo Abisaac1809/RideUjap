@@ -1,0 +1,30 @@
+{
+  "name": "@rideujap/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "build": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "prettier": "@rideujap/prettier-config",
+  "dependencies": {
+    "@rideujap/shared": "workspace:*",
+    "fastify": "^5.2.0"
+  },
+  "devDependencies": {
+    "@rideujap/eslint-config": "workspace:*",
+    "@rideujap/prettier-config": "workspace:*",
+    "@rideujap/tsconfig": "workspace:*",
+    "@types/node": "^24.13.3",
+    "eslint": "^9.18.0",
+    "prettier": "^3.9.5",
+    "tsx": "^4.19.2",
+    "typescript": "^6.0.3"
+  }
+}

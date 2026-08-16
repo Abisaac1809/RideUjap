@@ -1,48 +1,41 @@
-# RideUjap
+# RideUJAP
 
-This template should help get you started developing with Vue 3 in Vite.
+Monorepo (Turborepo + pnpm).
 
-## Recommended IDE Setup
+## Estructura
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+```
+apps/
+  api/       Fastify + TypeScript
+  mobile/    Expo (React Native) + TypeScript
+packages/
+  shared/    Entidades de dominio (TS) compartidas
+tooling/
+  typescript/  tsconfig base (node / react-native)
+  eslint/      config ESLint plana compartida
+  prettier/    preset Prettier compartido
+```
 
-## Recommended Browser Setup
+## Requisitos
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- Node >= 20
+- pnpm
 
-## Type Support for `.vue` Imports in TS
+## Uso
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
+```bash
 pnpm install
-```
 
-### Compile and Hot-Reload for Development
+# API (http://localhost:3000)
+pnpm -F @rideujap/api dev
 
-```sh
-pnpm dev
-```
+# Mobile (Expo Go)
+pnpm -F @rideujap/mobile start
 
-### Type-Check, Compile and Minify for Production
-
-```sh
+# Todo el monorepo
+pnpm dev (corre api y la app en conjunto)
+pnpm lint (eslint)
+pnpm type-check
 pnpm build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
+pnpm format (prettier)
 ```
