@@ -9,11 +9,24 @@
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "format": "turbo run format && prettier --write \"*.{json,md,js,mjs}\"",
-    "format:check": "turbo run format:check && prettier --check \"*.{json,md,js,mjs}\""
+    "format:check": "turbo run format:check && prettier --check \"*.{json,md,js,mjs}\"",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "{apps,packages}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "eslint --fix --flag v10_config_lookup_from_file",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml,css,html}": "prettier --write"
   },
   "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
     "@rideujap/prettier-config": "workspace:*",
     "@types/node": "^24.13.3",
+    "eslint": "^9.39.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
     "prettier": "^3.9.5",
     "turbo": "^2.5.8",
     "typescript": "^6.0.3"
