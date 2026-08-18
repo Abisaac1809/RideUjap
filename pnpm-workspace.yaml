@@ -4,3 +4,9 @@ packages:
   - "tooling/*"
 allowBuilds:
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@expo/log-box@57.0.3'
+  - '@expo/metro-runtime@57.0.11'
+  - expo-constants@57.0.12
+  - expo-router@57.0.14
+minimumReleaseAgeStrict: false
