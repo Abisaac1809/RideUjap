@@ -12,4 +12,6 @@ const client = postgres(process.env.DATABASE_URL);
 
 export const db = drizzle(client, { schema });
 
-export { schema };
+// `client` se exporta para que los scripts puntuales (p. ej. seed) puedan cerrar
+// la conexión y terminar; el servidor la mantiene abierta durante toda su vida.
+export { schema, client };
