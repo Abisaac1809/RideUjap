@@ -17,16 +17,22 @@ RideUJAP es una aplicación de transporte compartido (ride-sharing) para la comu
 # 1. Instalar dependencias
 pnpm install
 
-# 2. Configurar variables de entorno de la API
-#    Crear apps/api/.env con la cadena de conexión a PostgreSQL:
-#    DATABASE_URL=postgres://usuario:password@localhost:5432/rideujap
+# 2. Levantar PostgreSQL (Docker) y configurar la API
+docker compose up -d
+cp apps/api/.env.example apps/api/.env
 
-# 3. Aplicar el esquema a la base de datos
-pnpm --filter @rideujap/api db:push        # o db:migrate para usar migraciones
+# 3. Aplicar el esquema y cargar los datos de demostración
+pnpm -F @rideujap/api db:migrate           # o db:push para sincronizar directo
+pnpm -F @rideujap/api db:seed
 
 # 4. Levantar todo el monorepo (API + app móvil)
 pnpm dev
 ```
+
+La app móvil no necesita configuración: deduce la IP de la máquina donde corre
+Metro y busca el API en el puerto 3000, así que funciona en Expo Go sobre un
+teléfono físico sin tocar nada. Si el API vive en otra máquina, define
+`EXPO_PUBLIC_API_URL` en `apps/mobile/.env` (ver `apps/mobile/.env.example`).
 
 Para ejecutar cada app por separado:
 
@@ -53,6 +59,7 @@ Scripts de base de datos (desde `apps/api`):
 pnpm -F @rideujap/api db:generate    # Generar migraciones desde el esquema
 pnpm -F @rideujap/api db:migrate     # Aplicar migraciones
 pnpm -F @rideujap/api db:push        # Sincronizar el esquema directamente
+pnpm -F @rideujap/api db:seed        # Cargar viajes de demostración
 pnpm -F @rideujap/api db:studio      # Abrir Drizzle Studio
 ```
 
