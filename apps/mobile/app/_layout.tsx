@@ -22,6 +22,8 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Protected guard={!!session}>
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="publicar" options={{ presentation: "modal" }} />
+            <Stack.Screen name="viaje" options={{ presentation: "modal" }} />
           </Stack.Protected>
           <Stack.Protected guard={!session}>
             <Stack.Screen name="(auth)" />
