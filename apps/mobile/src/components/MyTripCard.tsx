@@ -61,7 +61,9 @@ export function MyTripCard({ item, onDecide, decidingId }: MyTripCardProps) {
               <Users size={14} color={colores.muted} />
               <Text variant="muted">{formatSeats(trip.availableSeats)} libres</Text>
             </View>
-            <Text className="font-semibold text-primary">{formatFare(trip.farePerPassenger)}</Text>
+            <Text className="font-sora-semibold text-primary">
+              {formatFare(trip.farePerPassenger)}
+            </Text>
           </View>
         </View>
       </Pressable>
@@ -128,8 +130,8 @@ export function MyTripCard({ item, onDecide, decidingId }: MyTripCardProps) {
 
 function RoleBadge({ role }: { role: MyTripItem["role"] }) {
   return (
-    <View className="self-start rounded-full bg-surface px-2.5 py-0.5">
-      <Text className="text-xs font-semibold text-ink">
+    <View className="self-start rounded-full bg-primary-tint px-2.5 py-0.5">
+      <Text className="font-sora-semibold text-xs text-primary">
         {role === "driver" ? "Conductor" : "Pasajero"}
       </Text>
     </View>

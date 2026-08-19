@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Car, ChevronRight, MapPin, TriangleAlert } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,7 +7,15 @@ import type { Trip, TripDirection } from "@rideujap/shared";
 
 import { DIRECTION_COPY, RouteHint } from "../../src/components/RouteHint";
 import { TripCard } from "../../src/components/TripCard";
-import { Button, Card, Input, Segmented, Text } from "../../src/components/ui";
+import {
+  Button,
+  Card,
+  IconBadge,
+  Input,
+  PressableScale,
+  Segmented,
+  Text,
+} from "../../src/components/ui";
 import { ApiError, searchTrips } from "../../src/lib/api";
 import { useSession } from "../../src/lib/auth-client";
 import { colores } from "../../src/lib/tokens";
@@ -39,23 +47,21 @@ export default function InicioScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-surface" edges={["top"]}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 px-5 pb-8 pt-4"
+        contentContainerClassName="gap-6 px-5 pb-8 pt-6"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="gap-1">
-          <Text variant="label" className="uppercase tracking-widest text-primary">
+        <View className="gap-1.5">
+          <Text variant="label" className="text-primary">
             RideUJAP
           </Text>
-          <Text variant="title" className="text-3xl">
-            {firstName ? `Hola, ${firstName}` : "Hola"}
-          </Text>
+          <Text variant="display">{firstName ? `Hola, ${firstName}` : "Hola"}</Text>
           <Text variant="muted">¿Vas a la U o vuelves a casa? Encuentra con quién ir.</Text>
         </View>
 
-        <Card className="gap-4 bg-white">
+        <Card elevated className="gap-4">
           <Segmented
             value={direction}
             onChange={setDirection}
@@ -86,18 +92,18 @@ export default function InicioScreen() {
           />
         </Card>
 
-        <Pressable accessibilityRole="button" onPress={() => router.push("/publicar")}>
-          <Card className="flex-row items-center gap-4">
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-primary/10">
-              <Car size={20} color={colores.primary} />
-            </View>
+        <PressableScale accessibilityRole="button" onPress={() => router.push("/publicar")}>
+          <Card elevated className="flex-row items-center gap-4">
+            <IconBadge tone="accent">
+              <Car size={20} color={colores.accent} />
+            </IconBadge>
             <View className="flex-1">
               <Text variant="subtitle">¿Vas a manejar?</Text>
               <Text variant="muted">Ofrece tus cupos y comparte gastos.</Text>
             </View>
             <ChevronRight size={20} color={colores.muted} />
           </Card>
-        </Pressable>
+        </PressableScale>
 
         <Results state={state} place={place} />
       </ScrollView>
@@ -141,7 +147,7 @@ function Results({ state, place }: { state: State; place: string }) {
           : `${state.trips.length} viajes disponibles`}
       </Text>
       {state.trips.map((trip) => (
-        <Pressable
+        <PressableScale
           key={trip.id}
           accessibilityRole="button"
           onPress={() =>
@@ -152,7 +158,7 @@ function Results({ state, place }: { state: State; place: string }) {
           }
         >
           <TripCard trip={trip} />
-        </Pressable>
+        </PressableScale>
       ))}
     </View>
   );

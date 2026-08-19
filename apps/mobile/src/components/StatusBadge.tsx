@@ -7,9 +7,9 @@ import { openWhatsApp } from "../lib/whatsapp";
 import { Button, Text } from "./ui";
 
 const STATUS_META: Record<ReservationStatus, { label: string; className: string }> = {
-  requested: { label: "Pendiente", className: "bg-surface text-muted" },
-  accepted: { label: "Aceptada", className: "bg-primary/10 text-primary" },
-  enrolled: { label: "Confirmada", className: "bg-primary/10 text-primary" },
+  requested: { label: "Pendiente", className: "bg-accent-tint text-accent" },
+  accepted: { label: "Aceptada", className: "bg-primary-tint text-primary" },
+  enrolled: { label: "Confirmada", className: "bg-primary-tint text-primary" },
   rejected: { label: "Rechazada", className: "bg-red-500/10 text-red-500" },
 };
 
@@ -17,7 +17,10 @@ export function StatusBadge({ status }: { status: ReservationStatus }) {
   const meta = STATUS_META[status];
   return (
     <Text
-      className={cn("self-start rounded-full px-2.5 py-0.5 text-xs font-semibold", meta.className)}
+      className={cn(
+        "self-start rounded-full px-2.5 py-0.5 font-sora-semibold text-xs",
+        meta.className,
+      )}
     >
       {meta.label}
     </Text>

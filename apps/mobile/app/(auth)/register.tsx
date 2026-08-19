@@ -52,19 +52,17 @@ export default function RegisterScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top", "bottom"]}>
+    <SafeAreaView className="flex-1 bg-surface" edges={["top", "bottom"]}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 px-5 pb-8 pt-4"
+        contentContainerClassName="gap-6 px-5 pb-8 pt-6"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="gap-1">
-          <Text variant="label" className="uppercase tracking-widest text-primary">
+        <View className="gap-1.5">
+          <Text variant="label" className="text-primary">
             RideUJAP
           </Text>
-          <Text variant="title" className="text-3xl">
-            Crea tu cuenta
-          </Text>
+          <Text variant="display">Crea tu cuenta</Text>
           <Text variant="muted">Únete a la comunidad y comparte el viaje.</Text>
         </View>
 
@@ -124,7 +122,7 @@ export default function RegisterScreen() {
         <View className="flex-row justify-center gap-1">
           <Text variant="muted">¿Ya tienes cuenta?</Text>
           <Link href="/login" replace>
-            <Text className="font-semibold text-primary">Inicia sesión</Text>
+            <Text className="font-sora-semibold text-primary">Inicia sesión</Text>
           </Link>
         </View>
       </ScrollView>

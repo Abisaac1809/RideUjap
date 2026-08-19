@@ -6,14 +6,12 @@ import { Text } from "../../src/components/ui";
 
 export default function HistorialScreen() {
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
-      <View className="gap-1 px-5 pb-2 pt-4">
-        <Text variant="label" className="uppercase tracking-widest text-primary">
+    <SafeAreaView className="flex-1 bg-surface" edges={["top"]}>
+      <View className="gap-1.5 px-5 pb-2 pt-6">
+        <Text variant="label" className="text-primary">
           Mis viajes
         </Text>
-        <Text variant="title" className="text-3xl">
-          Historial
-        </Text>
+        <Text variant="display">Historial</Text>
         <Text variant="muted">Tus viajes completados y cancelados.</Text>
       </View>
 

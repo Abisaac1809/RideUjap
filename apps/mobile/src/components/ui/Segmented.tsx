@@ -20,7 +20,7 @@ export interface SegmentedProps<T extends string> {
  */
 export function Segmented<T extends string>({ options, value, onChange }: SegmentedProps<T>) {
   return (
-    <View className="flex-row gap-1 rounded-control bg-surface p-1">
+    <View className="flex-row gap-1 rounded-control border border-line bg-surface p-1">
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -30,11 +30,11 @@ export function Segmented<T extends string>({ options, value, onChange }: Segmen
             accessibilityState={{ selected: active }}
             onPress={() => onChange(option.value)}
             className={cn(
-              "h-10 flex-1 items-center justify-center rounded-[9px]",
-              active && "bg-white shadow-sm",
+              "h-10 flex-1 items-center justify-center rounded-[10px]",
+              active && "bg-primary",
             )}
           >
-            <Text className={cn("font-semibold", active ? "text-primary" : "text-muted")}>
+            <Text className={cn("font-sora-semibold", active ? "text-primary-ink" : "text-muted")}>
               {option.label}
             </Text>
           </Pressable>

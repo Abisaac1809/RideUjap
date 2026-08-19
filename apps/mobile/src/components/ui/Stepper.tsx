@@ -26,7 +26,7 @@ export function Stepper({ value, onChange, min = 1, max = 99 }: StepperProps) {
       >
         <Minus size={18} color={colores.ink} />
       </StepButton>
-      <Text className="w-8 text-center text-lg font-semibold text-ink">{value}</Text>
+      <Text className="w-8 text-center font-sora-semibold text-lg text-ink">{value}</Text>
       <StepButton
         label="Sumar"
         disabled={value >= max}

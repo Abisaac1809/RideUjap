@@ -37,8 +37,13 @@ export function TripCard({ trip }: TripCardProps) {
         </View>
       </View>
 
-      <View className="flex-row items-center justify-between">
-        <Text className="font-semibold text-primary">{formatFare(trip.farePerPassenger)}</Text>
+      <View className="flex-row items-center justify-between border-t border-line pt-3">
+        <Text
+          className="rounded-full bg-primary-tint px-3 py-1 font-sora-bold text-sm text-primary"
+          numberOfLines={1}
+        >
+          {formatFare(trip.farePerPassenger)}
+        </Text>
         <Text variant="muted" numberOfLines={1}>
           {trip.driver.name}
         </Text>
