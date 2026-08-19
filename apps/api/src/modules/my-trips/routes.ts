@@ -3,8 +3,8 @@ import type { FastifyInstance } from "fastify";
 import type { MyTripItem, MyTripsResponse, TripReservation } from "@rideujap/shared";
 
 import { requireAuth } from "../auth/require-auth";
-import { db } from "../db/index";
-import { reservations, trips, user } from "../db/schema";
+import { db } from "../../db/index";
+import { reservations, trips, user } from "../../db/schema";
 import { canRevealPhone, classifyMyTrip } from "../reservations/rules";
 import { toDto, tripColumns } from "../trips/dto";
 import { myTripsSchema } from "./schemas";

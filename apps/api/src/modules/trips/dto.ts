@@ -1,6 +1,6 @@
 import type { Trip } from "@rideujap/shared";
 
-import { trips, user } from "../db/schema";
+import { trips, user } from "../../db/schema";
 
 /**
  * Columnas que componen el DTO de viaje. Se comparte entre `GET /trips` y

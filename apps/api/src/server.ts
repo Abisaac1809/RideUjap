@@ -1,12 +1,12 @@
 import cors from "@fastify/cors";
 import Fastify from "fastify";
 
-import { authRoutes } from "./auth/routes";
-import { healthRoutes } from "./health/routes";
-import { myTripsRoutes } from "./my-trips/routes";
-import { placesRoutes } from "./places/routes";
-import { reservationsRoutes } from "./reservations/routes";
-import { tripRoutes } from "./trips/routes";
+import { authRoutes } from "./modules/auth/routes";
+import { healthRoutes } from "./modules/health/routes";
+import { myTripsRoutes } from "./modules/my-trips/routes";
+import { placesRoutes } from "./modules/places/routes";
+import { reservationsRoutes } from "./modules/reservations/routes";
+import { tripRoutes } from "./modules/trips/routes";
 
 const app = Fastify({ logger: true });
 

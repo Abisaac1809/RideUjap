@@ -4,9 +4,9 @@ import type { FastifyInstance } from "fastify";
 import type { ContactResponse, DecideReservationBody, ReservationResponse } from "@rideujap/shared";
 
 import { requireAuth } from "../auth/require-auth";
-import { db } from "../db/index";
-import { isUniqueViolation } from "../db/errors";
-import { reservations, trips, user } from "../db/schema";
+import { db } from "../../db/index";
+import { isUniqueViolation } from "../../db/errors";
+import { reservations, trips, user } from "../../db/schema";
 import {
   canDecide,
   canReserve,

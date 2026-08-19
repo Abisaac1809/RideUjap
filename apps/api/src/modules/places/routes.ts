@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { PlaceDetails, PlaceSuggestion } from "@rideujap/shared";
 
 import { UJAP } from "../trips/fare";
-import { httpError } from "../lib/http-error";
+import { httpError } from "../../lib/http-error";
 
 const SEARCH_BOX_URL = "https://api.mapbox.com/search/searchbox/v1";
 const UPSTREAM_TIMEOUT_MS = 8_000;

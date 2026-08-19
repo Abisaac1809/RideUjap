@@ -9,15 +9,19 @@ import type {
 } from "@rideujap/shared";
 
 import { requireAuth } from "../auth/require-auth";
-import { db } from "../db/index";
-import { trips, user } from "../db/schema";
-import { httpError } from "../lib/http-error";
+import { db } from "../../db/index";
+import { trips, user } from "../../db/schema";
+import { httpError } from "../../lib/http-error";
 import { tripColumns, toDto } from "./dto";
 import { computeSuggestedFare } from "./fare";
 import { createTripSchema, fareEstimateSchema, searchTripsSchema } from "./schemas";
 
 const TIME_WINDOW_MS = 30 * 60 * 1000;
 const MAX_DISTANCE_KM = 5;
+
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (char) => `\\${char}`);
+}
 
 function distanceKm(lat: number, lng: number): SQL<number> {
   return sql<number>`(6371 * acos(least(1, greatest(-1,
@@ -29,14 +33,22 @@ function distanceKm(lat: number, lng: number): SQL<number> {
 export async function tripRoutes(app: FastifyInstance) {
   app.get<{ Querystring: SearchTripsQuery }>(
     "/trips",
-    { schema: searchTripsSchema },
+    { preHandler: requireAuth, schema: searchTripsSchema },
     async (request): Promise<Trip[]> => {
       const { direction, lat, lng, time, destination } = request.query;
 
-      const conditions: SQL[] = [eq(trips.status, "active"), gt(trips.availableSeats, 0)];
+      if ((lat === undefined) !== (lng === undefined)) {
+        throw httpError(400, "lat and lng must be provided together");
+      }
+
+      const conditions: SQL[] = [
+        eq(trips.status, "active"),
+        gt(trips.availableSeats, 0),
+        gte(trips.departureTime, new Date()),
+      ];
 
       if (direction) conditions.push(eq(trips.direction, direction));
-      if (destination) conditions.push(ilike(trips.pointText, `%${destination}%`));
+      if (destination) conditions.push(ilike(trips.pointText, `%${escapeLike(destination)}%`));
 
       if (time) {
         const at = new Date(time);
@@ -76,15 +88,15 @@ export async function tripRoutes(app: FastifyInstance) {
     "/trips",
     { preHandler: requireAuth, schema: createTripSchema },
     async (request, reply): Promise<Trip> => {
-      const driver = request.user;
-      if (!driver) {
-        throw httpError(401, "Unauthorized");
-      }
+      const driver = request.user!;
 
       const body = request.body;
       const departureTime = new Date(body.departureTime);
       if (Number.isNaN(departureTime.getTime())) {
         throw httpError(400, "departureTime must be a valid ISO date-time");
+      }
+      if (departureTime.getTime() <= Date.now()) {
+        throw httpError(400, "departureTime must be in the future");
       }
 
       const [row] = await db
