@@ -2,7 +2,9 @@
   "extends": "@rideujap/tsconfig/node.json",
   "compilerOptions": {
     "rootDir": "src",
-    "types": ["node"]
+    "types": ["node"],
+    "declaration": false,
+    "declarationMap": false
   },
   "include": ["src"]
 }

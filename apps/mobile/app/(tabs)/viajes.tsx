@@ -1,8 +1,8 @@
 import { Route } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { PantallaPlaceholder } from "../src/components/PantallaPlaceholder";
-import { colores } from "../src/lib/tokens";
+import { PantallaPlaceholder } from "../../src/components/PantallaPlaceholder";
+import { colores } from "../../src/lib/tokens";
 
 export default function ViajesScreen() {
   return (

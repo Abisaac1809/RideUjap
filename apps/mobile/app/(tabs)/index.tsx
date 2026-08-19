@@ -4,11 +4,11 @@ import { Search, TriangleAlert } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { Trip } from "@rideujap/shared";
 
-import { MapPlaceholder } from "../src/components/MapPlaceholder";
-import { TripCard } from "../src/components/TripCard";
-import { Button, Card, Input, Text } from "../src/components/ui";
-import { ApiError, searchTrips } from "../src/lib/api";
-import { colores } from "../src/lib/tokens";
+import { MapPlaceholder } from "../../src/components/MapPlaceholder";
+import { TripCard } from "../../src/components/TripCard";
+import { Button, Card, Input, Text } from "../../src/components/ui";
+import { ApiError, searchTrips } from "../../src/lib/api";
+import { colores } from "../../src/lib/tokens";
 
 type State =
   | { kind: "initial" }

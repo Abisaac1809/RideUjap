@@ -1,3 +1,4 @@
+import { expo } from "@better-auth/expo";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
@@ -12,7 +13,8 @@ export const auth = betterAuth({
       phone: { type: "string", required: true, input: true, returned: true },
     },
   },
-  trustedOrigins: ["http://localhost:3000", "http://localhost:8081"],
+  plugins: [expo()],
+  trustedOrigins: ["http://localhost:3000", "http://localhost:8081", "rideujap://"],
 });
 
 export type Session = typeof auth.$Infer.Session;

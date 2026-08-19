@@ -21,6 +21,7 @@
   },
   "prettier": "@rideujap/prettier-config",
   "dependencies": {
+    "@better-auth/expo": "^1.7.0",
     "@fastify/cors": "^11.3.0",
     "@rideujap/shared": "workspace:*",
     "better-auth": "^1.7.0",
