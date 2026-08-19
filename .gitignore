@@ -6,3 +6,10 @@ build/
 *.log
 .env
 .DS_Store
+
+# Archivos de Claude Code (no se suben)
+CLAUDE.md
+.claude/
+
+# Override local de docker (puerto distinto por Postgres nativo)
+docker-compose.override.yaml
