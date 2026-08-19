@@ -5,6 +5,7 @@ import Fastify from "fastify";
 
 import { authRoutes } from "./modules/auth/routes";
 import { healthRoutes } from "./modules/health/routes";
+import { meRoutes } from "./modules/me/routes";
 import { myTripsRoutes } from "./modules/my-trips/routes";
 import { placesRoutes } from "./modules/places/routes";
 import { reservationsRoutes } from "./modules/reservations/routes";
@@ -16,6 +17,7 @@ await app.register(cors, { origin: true, credentials: true });
 
 await app.register(authRoutes);
 await app.register(healthRoutes);
+await app.register(meRoutes);
 await app.register(tripRoutes);
 await app.register(placesRoutes);
 await app.register(reservationsRoutes);
