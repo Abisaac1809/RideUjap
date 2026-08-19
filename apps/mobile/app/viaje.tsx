@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowRight, CheckCircle2, Clock, MapPin, TriangleAlert, Users, X } from "lucide-react-native";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  TriangleAlert,
+  Users,
+  X,
+} from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type {
   AdmissionMode,
@@ -16,6 +24,7 @@ import { ContactButton, StatusBadge } from "../src/components/StatusBadge";
 import { Button, Card, Text } from "../src/components/ui";
 import { ApiError, createReservation } from "../src/lib/api";
 import { useSession } from "../src/lib/auth-client";
+import { useDismiss } from "../src/lib/useDismiss";
 import { formatFare, formatWhen } from "../src/lib/format";
 import { colores } from "../src/lib/tokens";
 
@@ -51,6 +60,7 @@ function parseParam(data?: string): DetailParam | null {
 
 export default function ViajeScreen() {
   const router = useRouter();
+  const dismiss = useDismiss();
   const { data } = useLocalSearchParams<{ data?: string }>();
   const { data: session } = useSession();
   const [reserve, setReserve] = useState<ReserveState>({ kind: "idle" });
@@ -63,7 +73,8 @@ export default function ViajeScreen() {
       const result = await createReservation(trip.id);
       setReserve({ kind: "done", result });
     } catch (error) {
-      const message = error instanceof ApiError ? error.message : "No pudimos completar la reserva.";
+      const message =
+        error instanceof ApiError ? error.message : "No pudimos completar la reserva.";
       setReserve({ kind: "error", message });
     }
   }
@@ -71,13 +82,13 @@ export default function ViajeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top", "bottom"]}>
       <View className="flex-row items-center justify-between px-5 pt-2">
-        <Text variant="label" className="uppercase tracking-widest text-primary">
+        <Text variant="label" className="text-primary">
           Detalle del viaje
         </Text>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Cerrar"
-          onPress={() => router.back()}
+          onPress={dismiss}
           hitSlop={8}
         >
           <X size={22} color={colores.muted} />
@@ -90,7 +101,7 @@ export default function ViajeScreen() {
           <Text variant="muted" className="text-center">
             No pudimos abrir este viaje.
           </Text>
-          <Button label="Volver" variant="outline" onPress={() => router.back()} />
+          <Button label="Volver" variant="outline" onPress={dismiss} />
         </View>
       ) : (
         <ScrollView
@@ -136,10 +147,17 @@ function TripSummary({ trip }: { trip: Trip }) {
       </View>
 
       <View className="gap-2">
-        <Row icon={<Clock size={16} color={colores.muted} />} text={formatWhen(trip.departureTime)} />
+        <Row
+          icon={<Clock size={16} color={colores.muted} />}
+          text={formatWhen(trip.departureTime)}
+        />
         <Row
           icon={<MapPin size={16} color={colores.muted} />}
-          text={trip.direction === "outbound" ? `Destino: ${trip.pointText}` : `Punto de encuentro: ${trip.pointText}`}
+          text={
+            trip.direction === "outbound"
+              ? `Destino: ${trip.pointText}`
+              : `Punto de encuentro: ${trip.pointText}`
+          }
         />
         <Row
           icon={<Users size={16} color={colores.muted} />}
@@ -149,7 +167,7 @@ function TripSummary({ trip }: { trip: Trip }) {
 
       <View className="flex-row items-center justify-between border-t border-line pt-3">
         <Text variant="muted">Aporte por pasajero</Text>
-        <Text className="text-lg font-semibold text-primary">
+        <Text className="font-sora-semibold text-lg text-primary">
           {formatFare(trip.farePerPassenger)}
         </Text>
       </View>

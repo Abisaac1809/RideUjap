@@ -9,6 +9,7 @@ import { DIRECTION_COPY, RouteHint } from "../src/components/RouteHint";
 import { PlacePicker } from "../src/components/PlacePicker";
 import { Button, Card, Input, Segmented, Stepper, Text } from "../src/components/ui";
 import { ApiError, createTrip, estimateFare } from "../src/lib/api";
+import { useDismiss } from "../src/lib/useDismiss";
 import { formatFare } from "../src/lib/format";
 import { colores } from "../src/lib/tokens";
 
@@ -54,6 +55,7 @@ type Status = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message:
 
 export default function PublicarScreen() {
   const router = useRouter();
+  const dismiss = useDismiss();
   const [days] = useState(buildDays);
 
   const [direction, setDirection] = useState<TripDirection>("inbound");
@@ -138,13 +140,13 @@ export default function PublicarScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top", "bottom"]}>
       <View className="flex-row items-center justify-between px-5 pt-2">
-        <Text variant="label" className="uppercase tracking-widest text-primary">
+        <Text variant="label" className="text-primary">
           Publicar viaje
         </Text>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Cerrar"
-          onPress={() => router.back()}
+          onPress={dismiss}
           hitSlop={8}
         >
           <X size={22} color={colores.muted} />
@@ -202,7 +204,7 @@ export default function PublicarScreen() {
                       : "rounded-control border border-line bg-surface px-4 py-2"
                   }
                 >
-                  <Text className={active ? "font-semibold text-primary-ink" : "text-ink"}>
+                  <Text className={active ? "font-sora-semibold text-primary-ink" : "text-ink"}>
                     {day.label}
                   </Text>
                 </Pressable>
@@ -256,7 +258,7 @@ export default function PublicarScreen() {
               className="flex-row items-center justify-between rounded-control bg-primary/10 px-3 py-2"
             >
               <Text className="text-primary">Sugerido: {formatFare(suggested)}</Text>
-              <Text className="font-semibold text-primary">Usar</Text>
+              <Text className="font-sora-semibold text-primary">Usar</Text>
             </Pressable>
           ) : null}
         </View>
