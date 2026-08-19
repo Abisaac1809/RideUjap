@@ -2,7 +2,34 @@
 
 ## Descripción
 
-RideUJAP es una aplicación de transporte compartido (ride-sharing) para la comunidad de la UJAP, que conecta conductores y pasajeros para coordinar viajes y compartir gastos. El proyecto está organizado como un monorepo con una API backend y una aplicación móvil, que comparten las entidades de dominio a través de un paquete común.
+RideUJAP es una app de **carpooling universitario** para la comunidad de la Universidad José Antonio Páez. Un estudiante que ya va a la UJAP en carro ofrece los puestos libres a otros que viven cerca de su ruta y van a la misma hora: reparte los gastos de gasolina y recibe una comisión por el servicio.
+
+No es ride-hailing. El destino es fijo (la UJAP), el emparejamiento se hace por cercanía y hora, y la coordinación final ocurre por WhatsApp. El flujo del producto es:
+
+**Publicar → Buscar → Reservar → Contactar por WhatsApp → Calificar**
+
+El proyecto está organizado como un monorepo con una API backend y una aplicación móvil, que comparten las entidades de dominio a través de un paquete común.
+
+## Documentación
+
+| Documento                                     | Para qué                                                                         |
+| --------------------------------------------- | -------------------------------------------------------------------------------- |
+| [Roadmap](./docs/00-ROADMAP.md)               | Fases del proyecto, stack y estado general                                       |
+| [Plan MVP](./docs/PLAN-MVP-MOVILIDAD-UJAP.md) | Especificación funcional: alcance, motor de tarifa, modelo de datos y matching   |
+| [Fase 1 — MVP](./docs/01-FASE-MVP.md)         | Plan de ejecución en curso: módulos, orden de dependencias y decisiones abiertas |
+
+## Estado actual
+
+El repositorio está en la **[Fase 1 — MVP de Movilidad](./docs/01-FASE-MVP.md)**.
+
+Lo que hay hoy en `main` es el **prototipo de demostración** de la [Fase 0](./docs/00-FASE-PREPARACION.md): pantalla de inicio, navegación por tabs, placeholder de mapa y un endpoint `GET /viajes?destino=` con datos de ejemplo. Sirve como base visual, pero su modelo de datos (`origen`, `destino`, `precio_bs`) **no es el del MVP** y lo reemplazan los módulos en desarrollo:
+
+| Módulo             | Qué aporta                                                        | Issues                                                                                                          |
+| ------------------ | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Auth y Schema Base | Better Auth + Drizzle, tablas `user`, `viaje` y `reserva`, sesión | [#1](https://github.com/Abisaac1809/RideUjap/issues/1)                                                          |
+| Usuarios           | Perfil del estudiante (`/me`), registro y login en el móvil       | [#2](https://github.com/Abisaac1809/RideUjap/issues/2) · [#5](https://github.com/Abisaac1809/RideUjap/issues/5) |
+| Viajes             | Motor de tarifa, publicar y buscar viajes                         | [#3](https://github.com/Abisaac1809/RideUjap/issues/3) · [#6](https://github.com/Abisaac1809/RideUjap/issues/6) |
+| Reservas           | Reservar, admisión, contacto por WhatsApp y "mis viajes"          | [#4](https://github.com/Abisaac1809/RideUjap/issues/4) · [#7](https://github.com/Abisaac1809/RideUjap/issues/7) |
 
 ## Requisitos
 
@@ -83,8 +110,11 @@ pnpm -F @rideujap/api db:studio      # Abrir Drizzle Studio
 **App móvil**
 
 - Expo (React Native 0.86, React 19)
+- Expo Router — navegación file-based
 - NativeWind + Tailwind CSS — estilos
 - react-native-web — soporte web
+
+> La autenticación (Better Auth) y el cálculo de distancia (Haversine local, sin librería de mapas) entran con los módulos de la Fase 1. La plataforma de deploy sigue sin decidirse — ver [decisiones abiertas](./docs/01-FASE-MVP.md#decisiones-abiertas).
 
 ## Arquitectura
 
@@ -107,9 +137,12 @@ tooling/
   typescript/  tsconfig base (node / react-native)
   eslint/      config ESLint plana compartida
   prettier/    preset Prettier compartido
+docs/
+  roadmap, fases del proyecto y especificación del MVP
 ```
 
 - **`packages/shared`** define las entidades del dominio (conductor, pasajero, vehículo, viaje) como fuente única de verdad, consumidas tanto por la API como por la app móvil.
 - **`apps/api`** expone la lógica de negocio sobre Fastify y persiste los datos en PostgreSQL mediante Drizzle ORM, con migraciones versionadas en `src/db/migrations`.
 - **`apps/mobile`** consume la API y ofrece la experiencia de usuario, con un sistema de componentes propio estilizado con NativeWind.
 - **`tooling`** centraliza las configuraciones de TypeScript, ESLint y Prettier para mantener consistencia en todo el monorepo.
+- **`docs`** documenta el producto y el plan de trabajo; el [roadmap](./docs/00-ROADMAP.md) es el punto de entrada.
