@@ -1,43 +1,48 @@
 import { ArrowRight, Clock, Users } from "lucide-react-native";
 import { View } from "react-native";
-import type { Viaje } from "@rideujap/shared";
+import type { Trip } from "@rideujap/shared";
 
-import { formatearCupos, formatearTarifa } from "../lib/formato";
+import { formatFare, formatSeats, formatTime } from "../lib/format";
 import { colores } from "../lib/tokens";
 import { Card, Text } from "./ui";
 
-export interface ViajeCardProps {
-  viaje: Viaje;
+export interface TripCardProps {
+  trip: Trip;
 }
 
-/** Resultado de búsqueda: ruta, hora de salida, cupos y tarifa. */
-export function ViajeCard({ viaje }: ViajeCardProps) {
+export function TripCard({ trip }: TripCardProps) {
+  const [origin, destination] =
+    trip.direction === "outbound" ? ["UJAP", trip.pointText] : [trip.pointText, "UJAP"];
+
   return (
     <Card className="gap-3">
       <View className="flex-row items-center gap-2">
         <Text variant="subtitle" className="flex-1" numberOfLines={1}>
-          {viaje.origen}
+          {origin}
         </Text>
         <ArrowRight size={16} color={colores.muted} />
         <Text variant="subtitle" className="flex-1 text-right" numberOfLines={1}>
-          {viaje.destino}
+          {destination}
         </Text>
       </View>
 
       <View className="flex-row items-center gap-5">
         <View className="flex-row items-center gap-1.5">
           <Clock size={14} color={colores.muted} />
-          <Text variant="muted">{viaje.hora}</Text>
+          <Text variant="muted">{formatTime(trip.departureTime)}</Text>
         </View>
         <View className="flex-row items-center gap-1.5">
           <Users size={14} color={colores.muted} />
-          <Text variant="muted">{formatearCupos(viaje.cuposDisponibles)}</Text>
+          <Text variant="muted">{formatSeats(trip.availableSeats)}</Text>
         </View>
       </View>
 
-      <Text className="font-semibold text-primary">
-        {formatearTarifa(viaje.precioBs, viaje.precioUsd)}
-      </Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="font-semibold text-primary">{formatFare(trip.farePerPassenger)}</Text>
+        <Text variant="muted" numberOfLines={1}>
+          {trip.driver.name}
+        </Text>
+      </View>
     </Card>
   );
 }

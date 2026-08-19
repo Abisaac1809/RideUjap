@@ -1,23 +1,58 @@
-import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
-import { integer, numeric, pgTable, serial, text } from "drizzle-orm/pg-core";
+import {
+  doublePrecision,
+  integer,
+  numeric,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
-/**
- * Esquema de base de datos (solo servidor).
- *
- * Esta es la representación en Postgres, NO el contrato de la API. El endpoint
- * mapea estas filas al DTO de `@rideujap/shared` antes de responder, para que
- * mobile nunca dependa del esquema de la BD.
- */
-export const viajes = pgTable("viajes", {
-  id: serial("id").primaryKey(),
-  origen: text("origen").notNull(),
-  destino: text("destino").notNull(),
-  hora: text("hora").notNull(),
-  cuposDisponibles: integer("cupos_disponibles").notNull().default(0),
-  // Tarifas: se muestran en Bs con referencia en USD (tasa BCV). Ver Fase 3.
-  precioBs: numeric("precio_bs", { precision: 12, scale: 2 }),
-  precioUsd: numeric("precio_usd", { precision: 10, scale: 2 }),
+import { user } from "./auth-schema";
+
+export const tripDirectionEnum = pgEnum("trip_direction", ["outbound", "inbound"]);
+export const admissionModeEnum = pgEnum("admission_mode", ["auto", "request"]);
+export const tripStatusEnum = pgEnum("trip_status", ["active", "completed", "cancelled"]);
+export const reservationStatusEnum = pgEnum("reservation_status", [
+  "enrolled",
+  "requested",
+  "accepted",
+  "rejected",
+]);
+
+export const trips = pgTable("trips", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  driverId: text("driver_id")
+    .notNull()
+    .references(() => user.id),
+  direction: tripDirectionEnum("direction").notNull(),
+  pointLat: doublePrecision("point_lat").notNull(),
+  pointLng: doublePrecision("point_lng").notNull(),
+  pointText: text("point_text").notNull(),
+  departureTime: timestamp("departure_time", { withTimezone: true }).notNull(),
+  totalSeats: integer("total_seats").notNull(),
+  availableSeats: integer("available_seats").notNull(),
+  admissionMode: admissionModeEnum("admission_mode").notNull(),
+  farePerPassenger: numeric("fare_per_passenger", { precision: 10, scale: 2 }),
+  status: tripStatusEnum("status").notNull().default("active"),
 });
 
-export type Viaje = InferSelectModel<typeof viajes>;
-export type NewViaje = InferInsertModel<typeof viajes>;
+export const reservations = pgTable("reservations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tripId: uuid("trip_id")
+    .notNull()
+    .references(() => trips.id),
+  passengerId: text("passenger_id")
+    .notNull()
+    .references(() => user.id),
+  status: reservationStatusEnum("status").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export * from "./auth-schema";
+
+export type Trip = typeof trips.$inferSelect;
+export type NewTrip = typeof trips.$inferInsert;
+export type Reservation = typeof reservations.$inferSelect;
+export type NewReservation = typeof reservations.$inferInsert;
