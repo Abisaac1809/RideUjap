@@ -39,11 +39,26 @@ const demoUsers: DemoUser[] = [
     name: "Carla Rodríguez",
     phone: "+584125550000",
   },
+  // Sin reservas ni viajes: es el pasajero libre para probar los casos de
+  // rechazo (viaje lleno, solicitud rechazada) sin tocar los datos de arriba.
+  {
+    email: "diego@ujap.edu.ve",
+    password: "password123",
+    name: "Diego Salas",
+    phone: "+584267778899",
+  },
 ];
 
 function tomorrowAt(hh: number, mm: number): Date {
   const d = new Date();
   d.setDate(d.getDate() + 1);
+  d.setHours(hh, mm, 0, 0);
+  return d;
+}
+
+function yesterdayAt(hh: number, mm: number): Date {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
   d.setHours(hh, mm, 0, 0);
   return d;
 }
@@ -70,7 +85,7 @@ async function main() {
     ids.push(res.user.id);
   }
 
-  const [ana, bruno, carla] = ids as [string, string, string];
+  const [ana, bruno, carla] = ids as [string, string, string, string];
 
   const demoTrips: NewTrip[] = [
     {
@@ -109,6 +124,46 @@ async function main() {
       admissionMode: "auto",
       farePerPassenger: null,
     },
+    // Un solo puesto libre: sirve para probar dos reservas simultáneas.
+    {
+      driverId: bruno,
+      direction: "inbound",
+      pointLat: 10.1801,
+      pointLng: -68.0043,
+      pointText: "Valencia — La Viña",
+      departureTime: tomorrowAt(7, 15),
+      totalSeats: 1,
+      availableSeats: 1,
+      admissionMode: "auto",
+      farePerPassenger: "180.00",
+    },
+    // Viaje lleno: no debe aceptar más reservas.
+    {
+      driverId: carla,
+      direction: "outbound",
+      pointLat: 10.2531,
+      pointLng: -67.9987,
+      pointText: "Naguanagua — Terrazas de Guaparo",
+      departureTime: tomorrowAt(17, 30),
+      totalSeats: 2,
+      availableSeats: 0,
+      admissionMode: "auto",
+      farePerPassenger: "200.00",
+    },
+    // Viaje pasado: aparece en el historial de "mis viajes".
+    {
+      driverId: ana,
+      direction: "inbound",
+      pointLat: 10.2402,
+      pointLng: -68.0201,
+      pointText: "Naguanagua — Av. Universidad",
+      departureTime: yesterdayAt(7, 0),
+      totalSeats: 3,
+      availableSeats: 2,
+      admissionMode: "auto",
+      farePerPassenger: "210.00",
+      status: "completed",
+    },
   ];
 
   const insertedTrips = await db.insert(trips).values(demoTrips).returning();
@@ -116,6 +171,10 @@ async function main() {
   const demoReservations: NewReservation[] = [
     { tripId: insertedTrips[0]!.id, passengerId: carla, status: "enrolled" },
     { tripId: insertedTrips[1]!.id, passengerId: carla, status: "requested" },
+    { tripId: insertedTrips[1]!.id, passengerId: bruno, status: "rejected" },
+    { tripId: insertedTrips[4]!.id, passengerId: ana, status: "enrolled" },
+    { tripId: insertedTrips[4]!.id, passengerId: bruno, status: "enrolled" },
+    { tripId: insertedTrips[5]!.id, passengerId: carla, status: "enrolled" },
   ];
   await db.insert(reservations).values(demoReservations);
 

@@ -10,7 +10,8 @@
     "type-check": "turbo run type-check",
     "format": "turbo run format && prettier --write \"*.{json,md,js,mjs}\"",
     "format:check": "turbo run format:check && prettier --check \"*.{json,md,js,mjs}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "turbo run test"
   },
   "lint-staged": {
     "{apps,packages}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [

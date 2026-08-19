@@ -8,6 +8,13 @@
       "when": 1787109638040,
       "tag": "0000_famous_proudstar",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787111665897,
+      "tag": "0001_violet_sally_floyd",
+      "breakpoints": true
     }
   ]
 }

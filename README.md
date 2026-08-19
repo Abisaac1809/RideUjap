@@ -76,6 +76,7 @@ Scripts útiles del monorepo:
 ```bash
 pnpm lint          # ESLint en todos los paquetes
 pnpm type-check    # Verificación de tipos con TypeScript
+pnpm test          # Tests unitarios (Vitest)
 pnpm build         # Build de todos los paquetes
 pnpm format        # Formateo con Prettier
 ```
@@ -105,6 +106,8 @@ pnpm -F @rideujap/api db:studio      # Abrir Drizzle Studio
 - Fastify — servidor HTTP
 - Drizzle ORM + drizzle-kit — acceso a datos y migraciones
 - PostgreSQL (driver `postgres`)
+- Better Auth — sesiones y registro con correo y contraseña
+- Vitest — tests unitarios de la lógica de negocio
 - tsx — ejecución de TypeScript en desarrollo
 
 **App móvil**

@@ -1,15 +1,19 @@
+export type TripDirection = "outbound" | "inbound";
+export type TripStatus = "active" | "completed" | "cancelled";
+export type AdmissionMode = "auto" | "request";
+
 export interface Trip {
   id: string;
-  direction: "outbound" | "inbound";
+  direction: TripDirection;
   pointText: string;
   pointLat: number;
   pointLng: number;
   departureTime: string;
   availableSeats: number;
   totalSeats: number;
-  admissionMode: "auto" | "request";
+  admissionMode: AdmissionMode;
   farePerPassenger: number | null;
-  status: "active" | "completed" | "cancelled";
+  status: TripStatus;
   driver: {
     id: string;
     name: string;

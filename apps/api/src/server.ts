@@ -7,6 +7,9 @@ import type { SearchTripsQuery, Trip } from "@rideujap/shared";
 import { auth } from "./auth/auth";
 import { db } from "./db/index";
 import { trips, user } from "./db/schema";
+import { myTripsRoutes } from "./my-trips/routes";
+import { reservationsRoutes } from "./reservations/routes";
+import { toDto, tripColumns, tripJsonSchema } from "./trips/dto";
 
 const app = Fastify({ logger: true });
 
@@ -36,44 +39,6 @@ app.route({
   },
 });
 
-type TripRow = {
-  id: string;
-  direction: (typeof trips.direction.enumValues)[number];
-  pointText: string;
-  pointLat: number;
-  pointLng: number;
-  departureTime: Date;
-  availableSeats: number;
-  totalSeats: number;
-  admissionMode: (typeof trips.admissionMode.enumValues)[number];
-  farePerPassenger: string | null;
-  status: (typeof trips.status.enumValues)[number];
-  driverId: string;
-  driverName: string;
-  driverImage: string | null;
-};
-
-function toDto(row: TripRow): Trip {
-  return {
-    id: row.id,
-    direction: row.direction,
-    pointText: row.pointText,
-    pointLat: row.pointLat,
-    pointLng: row.pointLng,
-    departureTime: row.departureTime.toISOString(),
-    availableSeats: row.availableSeats,
-    totalSeats: row.totalSeats,
-    admissionMode: row.admissionMode,
-    farePerPassenger: row.farePerPassenger === null ? null : Number(row.farePerPassenger),
-    status: row.status,
-    driver: {
-      id: row.driverId,
-      name: row.driverName,
-      image: row.driverImage,
-    },
-  };
-}
-
 app.get("/health", async (_request, reply) => {
   try {
     await db.execute(sql`select 1`);
@@ -96,45 +61,7 @@ const tripsSchema = {
   response: {
     200: {
       type: "array",
-      items: {
-        type: "object",
-        required: [
-          "id",
-          "direction",
-          "pointText",
-          "pointLat",
-          "pointLng",
-          "departureTime",
-          "availableSeats",
-          "totalSeats",
-          "admissionMode",
-          "farePerPassenger",
-          "status",
-          "driver",
-        ],
-        properties: {
-          id: { type: "string" },
-          direction: { type: "string", enum: ["outbound", "inbound"] },
-          pointText: { type: "string" },
-          pointLat: { type: "number" },
-          pointLng: { type: "number" },
-          departureTime: { type: "string" },
-          availableSeats: { type: "integer" },
-          totalSeats: { type: "integer" },
-          admissionMode: { type: "string", enum: ["auto", "request"] },
-          farePerPassenger: { type: ["number", "null"] },
-          status: { type: "string", enum: ["active", "completed", "cancelled"] },
-          driver: {
-            type: "object",
-            required: ["id", "name", "image"],
-            properties: {
-              id: { type: "string" },
-              name: { type: "string" },
-              image: { type: ["string", "null"] },
-            },
-          },
-        },
-      },
+      items: tripJsonSchema,
     },
   },
 };
@@ -148,22 +75,7 @@ app.get<{ Querystring: SearchTripsQuery }>(
     const textFilter = destination ? ilike(trips.pointText, `%${destination}%`) : undefined;
 
     const rows = await db
-      .select({
-        id: trips.id,
-        direction: trips.direction,
-        pointText: trips.pointText,
-        pointLat: trips.pointLat,
-        pointLng: trips.pointLng,
-        departureTime: trips.departureTime,
-        availableSeats: trips.availableSeats,
-        totalSeats: trips.totalSeats,
-        admissionMode: trips.admissionMode,
-        farePerPassenger: trips.farePerPassenger,
-        status: trips.status,
-        driverId: user.id,
-        driverName: user.name,
-        driverImage: user.image,
-      })
+      .select(tripColumns)
       .from(trips)
       .innerJoin(user, eq(trips.driverId, user.id))
       .where(and(eq(trips.status, "active"), textFilter))
@@ -172,6 +84,9 @@ app.get<{ Querystring: SearchTripsQuery }>(
     return rows.map(toDto);
   },
 );
+
+await app.register(reservationsRoutes);
+await app.register(myTripsRoutes);
 
 const port = Number(process.env.PORT ?? 3000);
 
