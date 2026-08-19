@@ -1,34 +1,76 @@
 import cors from "@fastify/cors";
-import { ilike, sql } from "drizzle-orm";
+import { and, eq, ilike, sql } from "drizzle-orm";
 import Fastify from "fastify";
-import type { BuscarViajesQuery, Viaje } from "@rideujap/shared";
+import { fromNodeHeaders } from "better-auth/node";
+import type { SearchTripsQuery, Trip } from "@rideujap/shared";
 
+import { auth } from "./auth/auth";
 import { db } from "./db/index";
-import { viajes } from "./db/schema";
+import { trips, user } from "./db/schema";
 
 const app = Fastify({ logger: true });
 
-// La app móvil corre en Expo Go (origen nativo, sin CORS) pero también en el
-// target web de react-native-web, que sí lo exige. En desarrollo se acepta
-// cualquier origen; al desplegar (Fase 4) hay que restringirlo.
-await app.register(cors, { origin: true });
+await app.register(cors, { origin: true, credentials: true });
 
-/**
- * Convierte una fila de Postgres al DTO público.
- *
- * Drizzle entrega las columnas `numeric` como string para no perder precisión;
- * el contrato de `@rideujap/shared` las expone como número para que mobile no
- * tenga que parsear.
- */
-function aDto(fila: typeof viajes.$inferSelect): Viaje {
+app.route({
+  method: ["GET", "POST"],
+  url: "/api/auth/*",
+  async handler(request, reply) {
+    try {
+      const url = new URL(request.url, `http://${request.headers.host}`);
+      const req = new Request(url, {
+        method: request.method,
+        headers: fromNodeHeaders(request.headers),
+        body: request.body ? JSON.stringify(request.body) : undefined,
+      });
+
+      const res = await auth.handler(req);
+
+      reply.status(res.status);
+      res.headers.forEach((value, key) => reply.header(key, value));
+      return reply.send(res.body ? await res.text() : null);
+    } catch (err) {
+      app.log.error(err, "Better Auth handler error");
+      return reply.status(500).send({ error: "Authentication error" });
+    }
+  },
+});
+
+type TripRow = {
+  id: string;
+  direction: (typeof trips.direction.enumValues)[number];
+  pointText: string;
+  pointLat: number;
+  pointLng: number;
+  departureTime: Date;
+  availableSeats: number;
+  totalSeats: number;
+  admissionMode: (typeof trips.admissionMode.enumValues)[number];
+  farePerPassenger: string | null;
+  status: (typeof trips.status.enumValues)[number];
+  driverId: string;
+  driverName: string;
+  driverImage: string | null;
+};
+
+function toDto(row: TripRow): Trip {
   return {
-    id: fila.id,
-    origen: fila.origen,
-    destino: fila.destino,
-    hora: fila.hora,
-    cuposDisponibles: fila.cuposDisponibles,
-    precioBs: fila.precioBs === null ? null : Number(fila.precioBs),
-    precioUsd: fila.precioUsd === null ? null : Number(fila.precioUsd),
+    id: row.id,
+    direction: row.direction,
+    pointText: row.pointText,
+    pointLat: row.pointLat,
+    pointLng: row.pointLng,
+    departureTime: row.departureTime.toISOString(),
+    availableSeats: row.availableSeats,
+    totalSeats: row.totalSeats,
+    admissionMode: row.admissionMode,
+    farePerPassenger: row.farePerPassenger === null ? null : Number(row.farePerPassenger),
+    status: row.status,
+    driver: {
+      id: row.driverId,
+      name: row.driverName,
+      image: row.driverImage,
+    },
   };
 }
 
@@ -37,18 +79,18 @@ app.get("/health", async (_request, reply) => {
     await db.execute(sql`select 1`);
     return { status: "ok", db: "ok" };
   } catch (err) {
-    app.log.error(err, "Health check: la base de datos no responde");
+    app.log.error(err, "Health check: database is not responding");
     reply.code(503);
     return { status: "degraded", db: "error" };
   }
 });
 
-const viajesSchema = {
+const tripsSchema = {
   querystring: {
     type: "object",
     additionalProperties: false,
     properties: {
-      destino: { type: "string", minLength: 1, maxLength: 100 },
+      destination: { type: "string", minLength: 1, maxLength: 100 },
     },
   },
   response: {
@@ -56,35 +98,78 @@ const viajesSchema = {
       type: "array",
       items: {
         type: "object",
-        required: ["id", "origen", "destino", "hora", "cuposDisponibles", "precioBs", "precioUsd"],
+        required: [
+          "id",
+          "direction",
+          "pointText",
+          "pointLat",
+          "pointLng",
+          "departureTime",
+          "availableSeats",
+          "totalSeats",
+          "admissionMode",
+          "farePerPassenger",
+          "status",
+          "driver",
+        ],
         properties: {
-          id: { type: "integer" },
-          origen: { type: "string" },
-          destino: { type: "string" },
-          hora: { type: "string" },
-          cuposDisponibles: { type: "integer" },
-          precioBs: { type: ["number", "null"] },
-          precioUsd: { type: ["number", "null"] },
+          id: { type: "string" },
+          direction: { type: "string", enum: ["outbound", "inbound"] },
+          pointText: { type: "string" },
+          pointLat: { type: "number" },
+          pointLng: { type: "number" },
+          departureTime: { type: "string" },
+          availableSeats: { type: "integer" },
+          totalSeats: { type: "integer" },
+          admissionMode: { type: "string", enum: ["auto", "request"] },
+          farePerPassenger: { type: ["number", "null"] },
+          status: { type: "string", enum: ["active", "completed", "cancelled"] },
+          driver: {
+            type: "object",
+            required: ["id", "name", "image"],
+            properties: {
+              id: { type: "string" },
+              name: { type: "string" },
+              image: { type: ["string", "null"] },
+            },
+          },
         },
       },
     },
   },
 };
 
-app.get<{ Querystring: BuscarViajesQuery }>(
-  "/viajes",
-  { schema: viajesSchema },
-  async (request): Promise<Viaje[]> => {
-    const { destino } = request.query;
+app.get<{ Querystring: SearchTripsQuery }>(
+  "/trips",
+  { schema: tripsSchema },
+  async (request): Promise<Trip[]> => {
+    const { destination } = request.query;
 
-    const filas = await db
-      .select()
-      .from(viajes)
-      // Búsqueda parcial e insensible a mayúsculas: "san" encuentra "San Diego".
-      .where(destino ? ilike(viajes.destino, `%${destino}%`) : undefined)
-      .orderBy(viajes.hora);
+    const textFilter = destination ? ilike(trips.pointText, `%${destination}%`) : undefined;
 
-    return filas.map(aDto);
+    const rows = await db
+      .select({
+        id: trips.id,
+        direction: trips.direction,
+        pointText: trips.pointText,
+        pointLat: trips.pointLat,
+        pointLng: trips.pointLng,
+        departureTime: trips.departureTime,
+        availableSeats: trips.availableSeats,
+        totalSeats: trips.totalSeats,
+        admissionMode: trips.admissionMode,
+        farePerPassenger: trips.farePerPassenger,
+        status: trips.status,
+        driverId: user.id,
+        driverName: user.name,
+        driverImage: user.image,
+      })
+      .from(trips)
+      .innerJoin(user, eq(trips.driverId, user.id))
+      .where(and(eq(trips.status, "active"), textFilter))
+      .orderBy(trips.departureTime);
+
+    return rows.map(toDto);
   },
 );
 

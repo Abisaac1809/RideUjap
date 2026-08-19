@@ -2,36 +2,32 @@ import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { Search, TriangleAlert } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { Viaje } from "@rideujap/shared";
+import type { Trip } from "@rideujap/shared";
 
 import { MapPlaceholder } from "../src/components/MapPlaceholder";
-import { ViajeCard } from "../src/components/ViajeCard";
+import { TripCard } from "../src/components/TripCard";
 import { Button, Card, Input, Text } from "../src/components/ui";
-import { ApiError, buscarViajes } from "../src/lib/api";
+import { ApiError, searchTrips } from "../src/lib/api";
 import { colores } from "../src/lib/tokens";
 
-type Estado =
-  | { tipo: "inicial" }
-  | { tipo: "cargando" }
-  | { tipo: "error"; mensaje: string }
-  | { tipo: "listo"; viajes: Viaje[] };
+type State =
+  | { kind: "initial" }
+  | { kind: "loading" }
+  | { kind: "error"; message: string }
+  | { kind: "ready"; trips: Trip[] };
 
-/**
- * Pantalla de inicio: réplica en React Native del diseño validado en el
- * template Vue, conectada al endpoint real de viajes.
- */
 export default function InicioScreen() {
-  const [destino, setDestino] = useState("");
-  const [estado, setEstado] = useState<Estado>({ tipo: "inicial" });
+  const [destination, setDestination] = useState("");
+  const [state, setState] = useState<State>({ kind: "initial" });
 
-  async function onBuscar() {
-    setEstado({ tipo: "cargando" });
+  async function onSearch() {
+    setState({ kind: "loading" });
     try {
-      const viajes = await buscarViajes(destino);
-      setEstado({ tipo: "listo", viajes });
+      const trips = await searchTrips(destination);
+      setState({ kind: "ready", trips });
     } catch (error) {
-      const mensaje = error instanceof ApiError ? error.message : "Ocurrió un error inesperado.";
-      setEstado({ tipo: "error", mensaje });
+      const message = error instanceof ApiError ? error.message : "Ocurrió un error inesperado.";
+      setState({ kind: "error", message });
     }
   }
 
@@ -56,49 +52,49 @@ export default function InicioScreen() {
           <Input
             label="Destino"
             placeholder="Ej. San Diego, Naguanagua…"
-            value={destino}
-            onChangeText={setDestino}
+            value={destination}
+            onChangeText={setDestination}
             autoCorrect={false}
             returnKeyType="search"
-            onSubmitEditing={onBuscar}
+            onSubmitEditing={onSearch}
             leftIcon={<Search size={18} color={colores.muted} />}
           />
           <Button
             label="Buscar viaje"
             fullWidth
-            loading={estado.tipo === "cargando"}
-            onPress={onBuscar}
+            loading={state.kind === "loading"}
+            onPress={onSearch}
           />
         </View>
 
         <MapPlaceholder />
 
-        <Resultados estado={estado} destino={destino} />
+        <Results state={state} destination={destination} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function Resultados({ estado, destino }: { estado: Estado; destino: string }) {
-  if (estado.tipo === "inicial" || estado.tipo === "cargando") return null;
+function Results({ state, destination }: { state: State; destination: string }) {
+  if (state.kind === "initial" || state.kind === "loading") return null;
 
-  if (estado.tipo === "error") {
+  if (state.kind === "error") {
     return (
       <Card className="flex-row items-center gap-3">
         <TriangleAlert size={20} color={colores.muted} />
         <Text variant="muted" className="flex-1">
-          {estado.mensaje}
+          {state.message}
         </Text>
       </Card>
     );
   }
 
-  if (estado.viajes.length === 0) {
+  if (state.trips.length === 0) {
     return (
       <Card>
         <Text variant="muted">
-          {destino.trim()
-            ? `No encontramos viajes hacia "${destino.trim()}".`
+          {destination.trim()
+            ? `No encontramos viajes hacia "${destination.trim()}".`
             : "Todavía no hay viajes publicados."}
         </Text>
       </Card>
@@ -108,12 +104,12 @@ function Resultados({ estado, destino }: { estado: Estado; destino: string }) {
   return (
     <View className="gap-3">
       <Text variant="label">
-        {estado.viajes.length === 1
+        {state.trips.length === 1
           ? "1 viaje disponible"
-          : `${estado.viajes.length} viajes disponibles`}
+          : `${state.trips.length} viajes disponibles`}
       </Text>
-      {estado.viajes.map((viaje) => (
-        <ViajeCard key={viaje.id} viaje={viaje} />
+      {state.trips.map((trip) => (
+        <TripCard key={trip.id} trip={trip} />
       ))}
     </View>
   );
