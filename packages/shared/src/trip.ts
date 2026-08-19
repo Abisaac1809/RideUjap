@@ -22,5 +22,42 @@ export interface Trip {
 }
 
 export interface SearchTripsQuery {
+  direction?: TripDirection;
+  lat?: number;
+  lng?: number;
+  time?: string;
   destination?: string;
+}
+
+export interface FareEstimateQuery {
+  lat: number;
+  lng: number;
+  seats: number;
+}
+
+export interface FareEstimateResponse {
+  suggestedFare: number;
+}
+
+export interface CreateTripBody {
+  direction: TripDirection;
+  pointLat: number;
+  pointLng: number;
+  pointText: string;
+  departureTime: string;
+  totalSeats: number;
+  admissionMode: AdmissionMode;
+  fare: number;
+}
+
+export interface PlaceSuggestion {
+  id: string;
+  name: string;
+  address: string;
+}
+
+export interface PlaceDetails {
+  lat: number;
+  lng: number;
+  text: string;
 }

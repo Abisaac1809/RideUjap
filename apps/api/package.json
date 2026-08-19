@@ -8,6 +8,8 @@
     "start": "tsx src/server.ts",
     "build": "tsc --noEmit",
     "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
@@ -15,8 +17,7 @@
     "db:migrate": "tsx src/db/migrate.ts",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
-    "db:studio": "drizzle-kit studio",
-    "test": "vitest run"
+    "db:studio": "drizzle-kit studio"
   },
   "prettier": "@rideujap/prettier-config",
   "dependencies": {

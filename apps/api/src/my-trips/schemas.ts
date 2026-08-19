@@ -1,5 +1,5 @@
 import { counterpartSchema, reservationStatusSchema } from "../reservations/schemas";
-import { tripJsonSchema } from "../trips/dto";
+import { tripJsonSchema } from "../trips/schemas";
 
 const tripReservationSchema = {
   type: "object",
