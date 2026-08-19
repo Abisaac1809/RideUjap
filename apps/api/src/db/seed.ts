@@ -1,4 +1,4 @@
-import { auth } from "../auth/auth";
+import { auth } from "../modules/auth/auth";
 import { client, db } from "./index";
 import {
   account,
