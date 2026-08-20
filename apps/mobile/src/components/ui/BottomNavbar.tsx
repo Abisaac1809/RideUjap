@@ -34,7 +34,7 @@ export function BottomNavbar({ items, activeKey, onSelect }: BottomNavbarProps) 
     <View className="bg-transparent px-4 pb-6 pt-2">
       <View
         accessibilityRole="tablist"
-        className="flex-row items-center justify-around rounded-3xl bg-ink px-2 py-2.5"
+        className="flex-row items-center justify-around rounded-full bg-ink px-2 py-2.5"
       >
         {items.map((item) => (
           <NavButton
@@ -63,10 +63,11 @@ function NavButton({
   const t = useDerivedValue(() => withSpring(active ? 1 : 0, GROW_SPRING), [active]);
 
   const pillStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 0.94 + t.value * 0.06 }],
+    transform: [{ scale: 0.96 + t.value * 0.04 }],
     backgroundColor: `rgba(13,122,111,${t.value})`,
-    paddingHorizontal: 14 + t.value * 8,
-    paddingVertical: 8 + t.value * 4,
+    paddingHorizontal: 8 + t.value * 6,
+    paddingVertical: 7 + t.value * 3,
+    borderRadius: 999,
   }));
 
   return (
@@ -74,11 +75,11 @@ function NavButton({
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       onPress={onPress}
-      className="flex-1 items-center"
+      className="items-center"
     >
-      {/* La píldora cubre ícono + texto como una sola caja redondeada. */}
-      <Animated.View style={pillStyle} className="items-center justify-center gap-1 rounded-3xl">
-        {item.icon(active)}
+      {/* Ícono arriba, texto abajo, ambos centrados en el mismo eje vertical. */}
+      <Animated.View style={pillStyle} className="items-center justify-center gap-1">
+        <View className="items-center">{item.icon(active)}</View>
         <Text
           className={cn("font-sora-medium text-[11px]", active ? "text-white" : "text-[#9a938d]")}
           numberOfLines={1}

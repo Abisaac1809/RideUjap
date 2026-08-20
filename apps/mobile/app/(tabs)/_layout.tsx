@@ -36,7 +36,7 @@ function BarraInferior({ state, navigation }: TabBarProps) {
   const items: NavItem[] = TABS.map(({ name, label, Icon }) => ({
     key: name,
     label,
-    icon: (activo) => <Icon size={26} color={activo ? "#ffffff" : "#9a938d"} />,
+    icon: (activo) => <Icon size={20} color={activo ? "#ffffff" : "#9a938d"} />,
   }));
 
   return (
