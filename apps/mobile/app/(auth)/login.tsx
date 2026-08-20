@@ -4,6 +4,7 @@ import { Link } from "expo-router";
 import { Lock, Mail, TriangleAlert } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Logo } from "../../src/components/Logo";
 import { Button, Card, Input, Text } from "../../src/components/ui";
 import { signIn } from "../../src/lib/auth-client";
 import { colores } from "../../src/lib/tokens";
@@ -37,9 +38,7 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View className="gap-1.5">
-          <Text variant="label" className="text-primary">
-            RideUJAP
-          </Text>
+          <Logo height={26} />
           <Text variant="display">Bienvenido de vuelta</Text>
           <Text variant="muted">Inicia sesión para compartir viajes con tu comunidad.</Text>
         </View>

@@ -5,6 +5,7 @@ import { Car, ChevronRight, MapPin, TriangleAlert } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { Trip, TripDirection } from "@rideujap/shared";
 
+import { Logo } from "../../src/components/Logo";
 import { DIRECTION_COPY, RouteHint } from "../../src/components/RouteHint";
 import { TripCard } from "../../src/components/TripCard";
 import {
@@ -54,9 +55,7 @@ export default function InicioScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View className="gap-1.5">
-          <Text variant="label" className="text-primary">
-            RideUJAP
-          </Text>
+          <Logo height={26} />
           <Text variant="display">{firstName ? `Hola, ${firstName}` : "Hola"}</Text>
           <Text variant="muted">¿Vas a la U o vuelves a casa? Encuentra con quién ir.</Text>
         </View>
