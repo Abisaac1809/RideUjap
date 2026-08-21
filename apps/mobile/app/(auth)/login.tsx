@@ -4,6 +4,7 @@ import { Link } from "expo-router";
 import { Lock, Mail, TriangleAlert } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Logo } from "../../src/components/Logo";
 import { Button, Card, Input, Text } from "../../src/components/ui";
 import { signIn } from "../../src/lib/auth-client";
 import { colores } from "../../src/lib/tokens";
@@ -30,19 +31,15 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top", "bottom"]}>
+    <SafeAreaView className="flex-1 bg-surface" edges={["top", "bottom"]}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 px-5 pb-8 pt-4"
+        contentContainerClassName="gap-6 px-5 pb-8 pt-6"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="gap-1">
-          <Text variant="label" className="uppercase tracking-widest text-primary">
-            RideUJAP
-          </Text>
-          <Text variant="title" className="text-3xl">
-            Bienvenido de vuelta
-          </Text>
+        <View className="gap-1.5">
+          <Logo height={26} />
+          <Text variant="display">Bienvenido de vuelta</Text>
           <Text variant="muted">Inicia sesión para compartir viajes con tu comunidad.</Text>
         </View>
 
@@ -86,7 +83,7 @@ export default function LoginScreen() {
         <View className="flex-row justify-center gap-1">
           <Text variant="muted">¿No tienes cuenta?</Text>
           <Link href="/register" replace>
-            <Text className="font-semibold text-primary">Regístrate</Text>
+            <Text className="font-sora-semibold text-primary">Regístrate</Text>
           </Link>
         </View>
       </ScrollView>

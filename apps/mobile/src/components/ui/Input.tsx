@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { TextInput, View, type TextInputProps } from "react-native";
 
 import { cn } from "../../lib/cn";
+import { colores } from "../../lib/tokens";
 import { Text } from "./Text";
 
 export interface InputProps extends TextInputProps {
@@ -46,7 +47,7 @@ export function Input({
         {leftIcon ? <View>{leftIcon}</View> : null}
         <TextInput
           editable={editable}
-          placeholderTextColor="#8a9099"
+          placeholderTextColor={colores.muted}
           className={cn("flex-1 text-base text-ink web:outline-none", className)}
           onFocus={(e) => {
             setFocused(true);

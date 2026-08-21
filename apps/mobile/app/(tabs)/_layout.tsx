@@ -36,7 +36,7 @@ function BarraInferior({ state, navigation }: TabBarProps) {
   const items: NavItem[] = TABS.map(({ name, label, Icon }) => ({
     key: name,
     label,
-    icon: (activo) => <Icon size={22} color={activo ? colores.primary : colores.muted} />,
+    icon: (activo) => <Icon size={20} color={activo ? "#ffffff" : "#9a938d"} />,
   }));
 
   return (
@@ -52,7 +52,7 @@ export default function TabsLayout() {
   return (
     <Tabs
       tabBar={(props) => <BarraInferior {...props} />}
-      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: "#ffffff" } }}
+      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colores.surface } }}
     >
       {TABS.map(({ name }) => (
         <Tabs.Screen key={name} name={name} />

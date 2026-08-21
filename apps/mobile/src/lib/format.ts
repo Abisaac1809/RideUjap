@@ -18,3 +18,12 @@ export function formatTime(iso: string): string {
     hour12: false,
   });
 }
+
+export function formatWhen(iso: string): string {
+  const date = new Date(iso).toLocaleDateString("es-VE", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+  });
+  return `${date} · ${formatTime(iso)}`;
+}

@@ -1,17 +1,21 @@
-import { Clock } from "lucide-react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { PantallaPlaceholder } from "../../src/components/PantallaPlaceholder";
-import { colores } from "../../src/lib/tokens";
+import { MyTripsList } from "../../src/components/MyTripsList";
+import { Text } from "../../src/components/ui";
 
 export default function HistorialScreen() {
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
-      <PantallaPlaceholder
-        icono={<Clock size={40} color={colores.muted} />}
-        titulo="Historial"
-        descripcion="El registro de tus viajes completados, con su fecha, ruta y lo que se compartió en gastos."
-      />
+    <SafeAreaView className="flex-1 bg-surface" edges={["top"]}>
+      <View className="gap-1.5 px-5 pb-2 pt-6">
+        <Text variant="label" className="text-primary">
+          Mis viajes
+        </Text>
+        <Text variant="display">Historial</Text>
+        <Text variant="muted">Tus viajes completados y cancelados.</Text>
+      </View>
+
+      <MyTripsList bucket="history" />
     </SafeAreaView>
   );
 }

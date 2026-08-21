@@ -1,16 +1,22 @@
 import type { FastifyInstance } from "fastify";
 import type { PlaceDetails, PlaceSuggestion } from "@rideujap/shared";
 
+import { requireAuth } from "../auth/require-auth";
 import { UJAP } from "../trips/fare";
 import { httpError } from "../../lib/http-error";
 
 const SEARCH_BOX_URL = "https://api.mapbox.com/search/searchbox/v1";
 const UPSTREAM_TIMEOUT_MS = 8_000;
 
-// Temporary: restrict autocomplete to the Valencia metro area
+// Restrict autocomplete to the greater Valencia + San Diego metro area
 // (min_lon,min_lat,max_lon,max_lat). Widen or remove when opening to more cities.
-const VALENCIA_BBOX = "-68.10,10.08,-67.88,10.35";
+const VALENCIA_BBOX = "-68.12,10.05,-67.82,10.38";
 const PROXIMITY = `${UJAP.lng},${UJAP.lat}`;
+
+// Prioritise specific places (malls, businesses, landmarks) and addresses over
+// administrative areas, so results like "Sambil" or "Big Low" show up instead
+// of just city names.
+const SUGGEST_TYPES = "poi,address,street,neighborhood,place,locality";
 
 type MapboxSuggestion = {
   mapbox_id: string;
@@ -38,6 +44,7 @@ export async function placesRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { q: string; session: string } }>(
     "/places/suggest",
     {
+      preHandler: requireAuth,
       schema: {
         querystring: {
           type: "object",
@@ -61,7 +68,8 @@ export async function placesRoutes(app: FastifyInstance) {
         access_token: accessToken,
         language: "es",
         country: "ve",
-        limit: "6",
+        limit: "10",
+        types: SUGGEST_TYPES,
         proximity: PROXIMITY,
         bbox: VALENCIA_BBOX,
       });
@@ -84,6 +92,7 @@ export async function placesRoutes(app: FastifyInstance) {
   app.get<{ Params: { id: string }; Querystring: { session: string } }>(
     "/places/retrieve/:id",
     {
+      preHandler: requireAuth,
       schema: {
         params: {
           type: "object",
