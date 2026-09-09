@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { Link } from "expo-router";
-import { Lock, Mail, TriangleAlert } from "lucide-react-native";
+import { Mail, TriangleAlert } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Logo } from "../../src/components/Logo";
-import { Button, Card, Input, Text } from "../../src/components/ui";
+import { Button, Card, Input, PasswordInput, Text } from "../../src/components/ui";
 import { signIn } from "../../src/lib/auth-client";
 import { colores } from "../../src/lib/tokens";
 
@@ -54,13 +54,11 @@ export default function LoginScreen() {
             autoCorrect={false}
             leftIcon={<Mail size={18} color={colores.muted} />}
           />
-          <Input
+          <PasswordInput
             label="Contraseña"
             placeholder="••••••••"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
-            leftIcon={<Lock size={18} color={colores.muted} />}
           />
 
           {state.kind === "error" ? (
