@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { Link } from "expo-router";
-import { Lock, Mail, Phone, TriangleAlert, User } from "lucide-react-native";
+import { Mail, Phone, TriangleAlert, User } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Logo } from "../../src/components/Logo";
-import { Button, Card, Input, Text } from "../../src/components/ui";
+import { Button, Card, Input, PasswordInput, Text } from "../../src/components/ui";
 import { signUp } from "../../src/lib/auth-client";
 import { colores } from "../../src/lib/tokens";
 
@@ -18,6 +18,7 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
 
   function validate(): string | null {
@@ -26,6 +27,7 @@ export default function RegisterScreen() {
     if (!phone.trim()) return "Ingresa tu teléfono.";
     if (password.length < MIN_PASSWORD)
       return `La contraseña debe tener al menos ${MIN_PASSWORD} caracteres.`;
+    if (password !== confirmPassword) return "Las contraseñas no coinciden.";
     return null;
   }
 
@@ -92,13 +94,17 @@ export default function RegisterScreen() {
             keyboardType="phone-pad"
             leftIcon={<Phone size={18} color={colores.muted} />}
           />
-          <Input
+          <PasswordInput
             label="Contraseña"
             placeholder="Mínimo 8 caracteres"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
-            leftIcon={<Lock size={18} color={colores.muted} />}
+          />
+          <PasswordInput
+            label="Confirmar contraseña"
+            placeholder="Repite tu contraseña"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
           />
 
           {state.kind === "error" ? (

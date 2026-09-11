@@ -1,5 +1,6 @@
 export { Button, type ButtonProps, type ButtonVariant, type ButtonSize } from "./Button";
 export { Input, type InputProps } from "./Input";
+export { PasswordInput, type PasswordInputProps } from "./PasswordInput";
 export { Segmented, type SegmentedProps, type SegmentedOption } from "./Segmented";
 export { Stepper, type StepperProps } from "./Stepper";
 export { Toggle, type ToggleProps } from "./Toggle";
