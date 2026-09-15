@@ -4,10 +4,11 @@ import type { FastifyInstance } from "fastify";
 import type { ContactResponse, DecideReservationBody, ReservationResponse } from "@rideujap/shared";
 
 import { requireAuth } from "../auth/require-auth";
+import { toVehiclePublic } from "../driver/dto";
 import { requireDriver } from "../driver/require-driver";
 import { db } from "../../db/index";
 import { isUniqueViolation } from "../../db/errors";
-import { reservations, trips, user } from "../../db/schema";
+import { driverProfile, reservations, trips, user, vehicle } from "../../db/schema";
 import {
   canDecide,
   canReserve,
@@ -77,9 +78,12 @@ export async function reservationsRoutes(app: FastifyInstance) {
           availableSeats: trips.availableSeats,
           admissionMode: trips.admissionMode,
           driverPhone: user.phone,
+          vehicle,
         })
         .from(trips)
         .innerJoin(user, eq(trips.driverId, user.id))
+        .leftJoin(driverProfile, eq(driverProfile.userId, trips.driverId))
+        .leftJoin(vehicle, eq(vehicle.driverProfileId, driverProfile.id))
         .where(eq(trips.id, tripId));
 
       if (!trip) return reply.code(404).send({ error: "Viaje no encontrado" });
@@ -122,13 +126,16 @@ export async function reservationsRoutes(app: FastifyInstance) {
           return { reservation: reservation!, availableSeats };
         });
 
+        const revealed = canRevealPhone(created.reservation.status);
+
         const body: ReservationResponse = {
           id: created.reservation.id,
           tripId,
           status: created.reservation.status,
           createdAt: created.reservation.createdAt.toISOString(),
           availableSeats: created.availableSeats,
-          contactPhone: canRevealPhone(created.reservation.status) ? trip.driverPhone : null,
+          contactPhone: revealed ? trip.driverPhone : null,
+          vehicle: revealed && trip.vehicle ? toVehiclePublic(trip.vehicle) : null,
         };
 
         return reply.code(201).send(body);
@@ -217,6 +224,7 @@ export async function reservationsRoutes(app: FastifyInstance) {
           createdAt: result.reservation.createdAt.toISOString(),
           availableSeats: result.availableSeats,
           contactPhone: canRevealPhone(result.reservation.status) ? row.passengerPhone : null,
+          vehicle: null,
         };
 
         return reply.send(body);
@@ -257,11 +265,14 @@ export async function reservationsRoutes(app: FastifyInstance) {
             image: driverUser.image,
             phone: driverUser.phone,
           },
+          vehicle,
         })
         .from(reservations)
         .innerJoin(trips, eq(reservations.tripId, trips.id))
         .innerJoin(passengerUser, eq(reservations.passengerId, passengerUser.id))
         .innerJoin(driverUser, eq(trips.driverId, driverUser.id))
+        .leftJoin(driverProfile, eq(driverProfile.userId, trips.driverId))
+        .leftJoin(vehicle, eq(vehicle.driverProfileId, driverProfile.id))
         .where(eq(reservations.id, reservationId));
 
       if (!row) return reply.code(404).send({ error: "Reserva no encontrada" });
@@ -275,14 +286,17 @@ export async function reservationsRoutes(app: FastifyInstance) {
 
       // Revelado bidireccional: cada lado ve al otro, y solo si está confirmada.
       const counterpart = isDriver ? row.passenger : row.driver;
+      const revealed = canRevealPhone(row.status);
 
       const body: ContactResponse = {
         reservationId,
         status: row.status,
         counterpart: {
           ...counterpart,
-          phone: canRevealPhone(row.status) ? counterpart.phone : null,
+          phone: revealed ? counterpart.phone : null,
         },
+        // Solo el pasajero ve el vehículo, y solo del conductor de este viaje.
+        vehicle: revealed && isPassenger && row.vehicle ? toVehiclePublic(row.vehicle) : null,
       };
 
       return body;

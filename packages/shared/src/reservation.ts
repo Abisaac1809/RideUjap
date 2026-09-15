@@ -1,3 +1,4 @@
+import type { VehiclePublic } from "./driver";
 import type { Trip } from "./trip";
 
 export type ReservationStatus = "enrolled" | "requested" | "accepted" | "rejected";
@@ -13,6 +14,8 @@ export interface ReservationResponse {
   createdAt: string;
   availableSeats: number;
   contactPhone: string | null;
+  /** Vehículo del conductor, `null` mientras la reserva no esté confirmada. */
+  vehicle: VehiclePublic | null;
 }
 
 export interface DecideReservationBody {
@@ -31,6 +34,8 @@ export interface ContactResponse {
   reservationId: string;
   status: ReservationStatus;
   counterpart: Counterpart;
+  /** Vehículo del conductor, `null` cuando la contraparte es pasajera o la reserva no está confirmada. */
+  vehicle: VehiclePublic | null;
 }
 
 /** Reserva vista por el conductor, dentro de uno de sus viajes. */
@@ -57,6 +62,8 @@ export interface MyPassengerTrip {
   };
   /** `null` mientras la reserva no esté confirmada. */
   driverPhone: string | null;
+  /** Vehículo del conductor, `null` mientras la reserva no esté confirmada. */
+  vehicle: VehiclePublic | null;
 }
 
 export type MyTripItem = MyDriverTrip | MyPassengerTrip;

@@ -17,9 +17,21 @@ const reservationStatus = {
   enum: ["enrolled", "requested", "accepted", "rejected"],
 };
 
+export const vehiclePublicSchema = {
+  type: "object",
+  required: ["make", "model", "year", "color", "plate"],
+  properties: {
+    make: { type: "string" },
+    model: { type: "string" },
+    year: { type: "integer" },
+    color: { type: "string" },
+    plate: { type: "string" },
+  },
+};
+
 const reservationResponse = {
   type: "object",
-  required: ["id", "tripId", "status", "createdAt", "availableSeats", "contactPhone"],
+  required: ["id", "tripId", "status", "createdAt", "availableSeats", "contactPhone", "vehicle"],
   properties: {
     id: { type: "string" },
     tripId: { type: "string" },
@@ -27,6 +39,7 @@ const reservationResponse = {
     createdAt: { type: "string" },
     availableSeats: { type: "integer" },
     contactPhone: { type: ["string", "null"] },
+    vehicle: { anyOf: [vehiclePublicSchema, { type: "null" }] },
   },
 };
 
@@ -64,11 +77,12 @@ export const contactSchema = {
   response: {
     200: {
       type: "object",
-      required: ["reservationId", "status", "counterpart"],
+      required: ["reservationId", "status", "counterpart", "vehicle"],
       properties: {
         reservationId: { type: "string" },
         status: reservationStatus,
         counterpart: counterpartSchema,
+        vehicle: { anyOf: [vehiclePublicSchema, { type: "null" }] },
       },
     },
   },

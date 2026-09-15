@@ -3,8 +3,9 @@ import type { FastifyInstance } from "fastify";
 import type { MyTripItem, MyTripsResponse, TripReservation } from "@rideujap/shared";
 
 import { requireAuth } from "../auth/require-auth";
+import { toVehiclePublic } from "../driver/dto";
 import { db } from "../../db/index";
-import { reservations, trips, user } from "../../db/schema";
+import { driverProfile, reservations, trips, user, vehicle } from "../../db/schema";
 import { canRevealPhone, classifyMyTrip } from "../reservations/rules";
 import { toDto, tripColumns } from "../trips/dto";
 import { myTripsSchema } from "./schemas";
@@ -76,10 +77,13 @@ export async function myTripsRoutes(app: FastifyInstance) {
           reservationStatus: reservations.status,
           reservationCreatedAt: reservations.createdAt,
           driverPhone: user.phone,
+          vehicle,
         })
         .from(reservations)
         .innerJoin(trips, eq(reservations.tripId, trips.id))
         .innerJoin(user, eq(trips.driverId, user.id))
+        .leftJoin(driverProfile, eq(driverProfile.userId, trips.driverId))
+        .leftJoin(vehicle, eq(vehicle.driverProfileId, driverProfile.id))
         .where(eq(reservations.passengerId, actorId));
 
       const upcoming: MyTripItem[] = [];
@@ -107,6 +111,8 @@ export async function myTripsRoutes(app: FastifyInstance) {
           now,
         });
 
+        const revealed = canRevealPhone(row.reservationStatus);
+
         (bucket === "upcoming" ? upcoming : history).push({
           role: "passenger",
           trip: toDto(row),
@@ -115,7 +121,8 @@ export async function myTripsRoutes(app: FastifyInstance) {
             status: row.reservationStatus,
             createdAt: row.reservationCreatedAt.toISOString(),
           },
-          driverPhone: canRevealPhone(row.reservationStatus) ? row.driverPhone : null,
+          driverPhone: revealed ? row.driverPhone : null,
+          vehicle: revealed && row.vehicle ? toVehiclePublic(row.vehicle) : null,
         });
       }
 

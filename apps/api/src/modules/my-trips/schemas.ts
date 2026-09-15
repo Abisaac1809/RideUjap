@@ -1,4 +1,8 @@
-import { counterpartSchema, reservationStatusSchema } from "../reservations/schemas";
+import {
+  counterpartSchema,
+  reservationStatusSchema,
+  vehiclePublicSchema,
+} from "../reservations/schemas";
 import { tripJsonSchema } from "../trips/schemas";
 
 const tripReservationSchema = {
@@ -34,6 +38,7 @@ const myTripItemSchema = {
       },
     },
     driverPhone: { type: ["string", "null"] },
+    vehicle: { anyOf: [vehiclePublicSchema, { type: "null" }] },
   },
 };
 
