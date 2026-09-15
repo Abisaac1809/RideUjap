@@ -117,7 +117,7 @@ export default function ViajeScreen() {
               state={reserve}
               isOwnTrip={session?.user?.id === parsed.trip.driver.id}
               onReserve={() => onReserve(parsed.trip)}
-              onGoToTrips={() => router.replace("/viajes")}
+              onGoToTrips={() => router.replace("/(passenger)/viajes")}
             />
           ) : parsed.mode === "passenger" ? (
             <PassengerSection item={parsed.item} />

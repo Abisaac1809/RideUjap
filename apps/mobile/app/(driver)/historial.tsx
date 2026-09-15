@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MyTripsList } from "../../src/components/MyTripsList";
 import { Text } from "../../src/components/ui";
 
-export default function HistorialScreen() {
+export default function DriverHistorialScreen() {
   return (
     <SafeAreaView className="flex-1 bg-surface" edges={["top"]}>
       <View className="gap-1.5 px-5 pb-2 pt-6">
@@ -15,7 +15,7 @@ export default function HistorialScreen() {
         <Text variant="muted">Tus viajes completados y cancelados.</Text>
       </View>
 
-      <MyTripsList bucket="history" />
+      <MyTripsList bucket="history" role="driver" />
     </SafeAreaView>
   );
 }

@@ -1,5 +1,8 @@
 import type {
   CreateTripBody,
+  DriverOnboardingBody,
+  DriverProfileUpdateBody,
+  DriverStatusResponse,
   MyTripsResponse,
   PlaceDetails,
   PlaceSuggestion,
@@ -122,5 +125,23 @@ export function decideReservation(
   return apiFetch<ReservationResponse>(`/reservations/${id}`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
+  });
+}
+
+export function getDriverProfile(): Promise<DriverStatusResponse> {
+  return apiFetch<DriverStatusResponse>("/driver/profile");
+}
+
+export function createDriverProfile(body: DriverOnboardingBody): Promise<DriverStatusResponse> {
+  return apiFetch<DriverStatusResponse>("/driver/onboarding", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateDriverProfile(body: DriverProfileUpdateBody): Promise<DriverStatusResponse> {
+  return apiFetch<DriverStatusResponse>("/driver/profile", {
+    method: "PATCH",
+    body: JSON.stringify(body),
   });
 }

@@ -9,6 +9,7 @@ import { DIRECTION_COPY, RouteHint } from "../src/components/RouteHint";
 import { PlacePicker } from "../src/components/PlacePicker";
 import { Button, Card, Input, Segmented, Stepper, Text } from "../src/components/ui";
 import { ApiError, createTrip, estimateFare } from "../src/lib/api";
+import { usePortal } from "../src/lib/portal";
 import { useDismiss } from "../src/lib/useDismiss";
 import { formatFare } from "../src/lib/format";
 import { colores } from "../src/lib/tokens";
@@ -56,13 +57,16 @@ type Status = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message:
 export default function PublicarScreen() {
   const router = useRouter();
   const dismiss = useDismiss();
+  const { isDriver, driverStatus } = usePortal();
   const [days] = useState(buildDays);
+
+  const maxSeats = driverStatus?.vehicle?.seats ?? 8;
 
   const [direction, setDirection] = useState<TripDirection>("inbound");
   const [place, setPlace] = useState<PlaceDetails | null>(null);
   const [dayIndex, setDayIndex] = useState(0);
   const [time, setTime] = useState("07:00");
-  const [seats, setSeats] = useState(3);
+  const [seats, setSeats] = useState(() => Math.min(3, driverStatus?.vehicle?.seats ?? 3));
   const [admission, setAdmission] = useState<AdmissionMode>("request");
   const [fare, setFare] = useState("");
   const [suggested, setSuggested] = useState<number | null>(null);
@@ -130,7 +134,7 @@ export default function PublicarScreen() {
         admissionMode: admission,
         fare: fareNum,
       });
-      router.replace("/viajes");
+      router.replace("/(driver)/viajes");
     } catch (error) {
       const message = error instanceof ApiError ? error.message : "No pudimos publicar el viaje.";
       setStatus({ kind: "error", message });
@@ -153,132 +157,148 @@ export default function PublicarScreen() {
         </Pressable>
       </View>
 
-      <ScrollView
-        className="flex-1"
-        contentContainerClassName="gap-6 px-5 pb-8 pt-4"
-        keyboardShouldPersistTaps="handled"
-      >
-        <View className="gap-1">
-          <Text variant="title" className="text-2xl">
-            Ofrece tus cupos
+      {!isDriver ? (
+        <View className="flex-1 items-center justify-center gap-4 px-5">
+          <TriangleAlert size={32} color={colores.muted} />
+          <Text variant="muted" className="text-center">
+            Necesitas un perfil de conductor para publicar viajes.
           </Text>
-          <Text variant="muted">Comparte tu ruta con la comunidad y divide los gastos.</Text>
-        </View>
-
-        <View className="gap-3">
-          <Segmented
-            value={direction}
-            onChange={setDirection}
-            options={[
-              { value: "inbound", label: "Ida" },
-              { value: "outbound", label: "Vuelta" },
-            ]}
-          />
-          <RouteHint direction={direction} place={place?.text ?? ""} />
-        </View>
-
-        <PlacePicker
-          label={DIRECTION_COPY[direction].inputLabel}
-          value={place}
-          onChange={setPlace}
-        />
-
-        <View className="gap-2">
-          <Text variant="label">¿Cuándo sales?</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerClassName="gap-2 pr-2"
-          >
-            {days.map((day, index) => {
-              const active = index === dayIndex;
-              return (
-                <Pressable
-                  key={day.date.toISOString()}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  onPress={() => setDayIndex(index)}
-                  className={
-                    active
-                      ? "rounded-control bg-primary px-4 py-2"
-                      : "rounded-control border border-line bg-surface px-4 py-2"
-                  }
-                >
-                  <Text className={active ? "font-sora-semibold text-primary-ink" : "text-ink"}>
-                    {day.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-          <Input
-            label="Hora de salida"
-            placeholder="07:30"
-            value={time}
-            onChangeText={setTime}
-            keyboardType="numbers-and-punctuation"
-            maxLength={5}
-            helperText="Formato 24h."
+          <Button
+            label="Conviértete en conductor"
+            onPress={() => router.replace("/(driver)/onboarding")}
           />
         </View>
-
-        <View className="gap-2">
-          <Text variant="label">Cupos disponibles</Text>
-          <Stepper value={seats} onChange={setSeats} min={1} max={8} />
-        </View>
-
-        <View className="gap-2">
-          <Text variant="label">¿Cómo aceptas pasajeros?</Text>
-          <Segmented
-            value={admission}
-            onChange={setAdmission}
-            options={[
-              { value: "request", label: "Con aprobación" },
-              { value: "auto", label: "Automática" },
-            ]}
-          />
-          <Text variant="muted" className="text-xs">
-            {ADMISSION_COPY[admission]}
-          </Text>
-        </View>
-
-        <View className="gap-2">
-          <Text variant="label">Aporte por pasajero</Text>
-          <Input
-            placeholder="0,00"
-            value={fare}
-            onChangeText={setFare}
-            keyboardType="decimal-pad"
-            leftIcon={<Coins size={18} color={colores.muted} />}
-          />
-          {suggested !== null ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setFare(String(suggested))}
-              className="flex-row items-center justify-between rounded-control bg-primary/10 px-3 py-2"
-            >
-              <Text className="text-primary">Sugerido: {formatFare(suggested)}</Text>
-              <Text className="font-sora-semibold text-primary">Usar</Text>
-            </Pressable>
-          ) : null}
-        </View>
-
-        {status.kind === "error" ? (
-          <Card className="flex-row items-center gap-3">
-            <TriangleAlert size={20} color={colores.muted} />
-            <Text variant="muted" className="flex-1">
-              {status.message}
+      ) : (
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="gap-6 px-5 pb-8 pt-4"
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="gap-1">
+            <Text variant="title" className="text-2xl">
+              Ofrece tus cupos
             </Text>
-          </Card>
-        ) : null}
+            <Text variant="muted">Comparte tu ruta con la comunidad y divide los gastos.</Text>
+          </View>
 
-        <Button
-          label="Publicar viaje"
-          fullWidth
-          loading={status.kind === "loading"}
-          onPress={onSubmit}
-        />
-      </ScrollView>
+          <View className="gap-3">
+            <Segmented
+              value={direction}
+              onChange={setDirection}
+              options={[
+                { value: "inbound", label: "Ida" },
+                { value: "outbound", label: "Vuelta" },
+              ]}
+            />
+            <RouteHint direction={direction} place={place?.text ?? ""} />
+          </View>
+
+          <PlacePicker
+            label={DIRECTION_COPY[direction].inputLabel}
+            value={place}
+            onChange={setPlace}
+          />
+
+          <View className="gap-2">
+            <Text variant="label">¿Cuándo sales?</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerClassName="gap-2 pr-2"
+            >
+              {days.map((day, index) => {
+                const active = index === dayIndex;
+                return (
+                  <Pressable
+                    key={day.date.toISOString()}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    onPress={() => setDayIndex(index)}
+                    className={
+                      active
+                        ? "rounded-control bg-primary px-4 py-2"
+                        : "rounded-control border border-line bg-surface px-4 py-2"
+                    }
+                  >
+                    <Text className={active ? "font-sora-semibold text-primary-ink" : "text-ink"}>
+                      {day.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            <Input
+              label="Hora de salida"
+              placeholder="07:30"
+              value={time}
+              onChangeText={setTime}
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
+              helperText="Formato 24h."
+            />
+          </View>
+
+          <View className="gap-2">
+            <Text variant="label">Cupos disponibles</Text>
+            <Stepper value={seats} onChange={setSeats} min={1} max={maxSeats} />
+            <Text variant="muted" className="text-xs">
+              Tu vehículo tiene {maxSeats} {maxSeats === 1 ? "cupo" : "cupos"}.
+            </Text>
+          </View>
+
+          <View className="gap-2">
+            <Text variant="label">¿Cómo aceptas pasajeros?</Text>
+            <Segmented
+              value={admission}
+              onChange={setAdmission}
+              options={[
+                { value: "request", label: "Con aprobación" },
+                { value: "auto", label: "Automática" },
+              ]}
+            />
+            <Text variant="muted" className="text-xs">
+              {ADMISSION_COPY[admission]}
+            </Text>
+          </View>
+
+          <View className="gap-2">
+            <Text variant="label">Aporte por pasajero</Text>
+            <Input
+              placeholder="0,00"
+              value={fare}
+              onChangeText={setFare}
+              keyboardType="decimal-pad"
+              leftIcon={<Coins size={18} color={colores.muted} />}
+            />
+            {suggested !== null ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setFare(String(suggested))}
+                className="flex-row items-center justify-between rounded-control bg-primary/10 px-3 py-2"
+              >
+                <Text className="text-primary">Sugerido: {formatFare(suggested)}</Text>
+                <Text className="font-sora-semibold text-primary">Usar</Text>
+              </Pressable>
+            ) : null}
+          </View>
+
+          {status.kind === "error" ? (
+            <Card className="flex-row items-center gap-3">
+              <TriangleAlert size={20} color={colores.muted} />
+              <Text variant="muted" className="flex-1">
+                {status.message}
+              </Text>
+            </Card>
+          ) : null}
+
+          <Button
+            label="Publicar viaje"
+            fullWidth
+            loading={status.kind === "loading"}
+            onPress={onSubmit}
+          />
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

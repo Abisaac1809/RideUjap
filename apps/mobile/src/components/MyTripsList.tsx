@@ -11,6 +11,8 @@ import { Button, Card, Text } from "./ui";
 
 export interface MyTripsListProps {
   bucket: "upcoming" | "history";
+  /** Filtra a un solo rol; si se omite, muestra ambos (pasajero y conductor). */
+  role?: "driver" | "passenger";
 }
 
 type State =
@@ -18,7 +20,7 @@ type State =
   | { kind: "error"; message: string }
   | { kind: "ready"; data: MyTripsResponse };
 
-export function MyTripsList({ bucket }: MyTripsListProps) {
+export function MyTripsList({ bucket, role }: MyTripsListProps) {
   const router = useRouter();
   const [state, setState] = useState<State>({ kind: "loading" });
   const [refreshing, setRefreshing] = useState(false);
@@ -82,7 +84,9 @@ export function MyTripsList({ bucket }: MyTripsListProps) {
         </Card>
       ) : (
         <List
-          items={bucket === "upcoming" ? state.data.upcoming : state.data.history}
+          items={(bucket === "upcoming" ? state.data.upcoming : state.data.history).filter(
+            (item) => !role || item.role === role,
+          )}
           bucket={bucket}
           onDecide={onDecide}
           decidingId={decidingId}

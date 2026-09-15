@@ -9,13 +9,13 @@ export default function ViajesScreen() {
     <SafeAreaView className="flex-1 bg-surface" edges={["top"]}>
       <View className="gap-1.5 px-5 pb-2 pt-6">
         <Text variant="label" className="text-primary">
-          Mis viajes
+          Mis reservas
         </Text>
-        <Text variant="display">Próximos</Text>
-        <Text variant="muted">Los viajes que tienes por delante.</Text>
+        <Text variant="display">Próximas</Text>
+        <Text variant="muted">Los viajes que reservaste como pasajero.</Text>
       </View>
 
-      <MyTripsList bucket="upcoming" />
+      <MyTripsList bucket="upcoming" role="passenger" />
     </SafeAreaView>
   );
 }

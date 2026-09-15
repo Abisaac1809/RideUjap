@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
-import { GraduationCap, LogOut, Mail, Phone, User } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { Car, GraduationCap, LogOut, Mail, Phone, User } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Avatar, Button, Card, IconBadge, Text } from "../../src/components/ui";
 import { signOut, useSession } from "../../src/lib/auth-client";
+import { usePortal } from "../../src/lib/portal";
 import { colores } from "../../src/lib/tokens";
 
 export default function PerfilScreen() {
+  const router = useRouter();
   const { data: session } = useSession();
+  const { isDriver, setPortal } = usePortal();
   const [signingOut, setSigningOut] = useState(false);
 
   const user = session?.user;
@@ -57,6 +61,24 @@ export default function PerfilScreen() {
             />
           </Card>
         </View>
+
+        {isDriver ? (
+          <Button
+            label="Cambiar a modo conductor"
+            variant="outline"
+            fullWidth
+            leftIcon={<Car size={18} color={colores.ink} />}
+            onPress={() => setPortal("driver")}
+          />
+        ) : (
+          <Button
+            label="Conviértete en conductor"
+            variant="outline"
+            fullWidth
+            leftIcon={<Car size={18} color={colores.ink} />}
+            onPress={() => router.push("/(driver)/onboarding")}
+          />
+        )}
 
         <Button
           label="Cerrar sesión"

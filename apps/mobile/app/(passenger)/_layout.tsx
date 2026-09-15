@@ -1,20 +1,22 @@
 import { type ComponentProps, type ComponentType } from "react";
+import { View } from "react-native";
 import { Tabs } from "expo-router";
 import { Clock, House, Route, User } from "lucide-react-native";
 
+import { PortalToggle } from "../../src/components/PortalToggle";
 import { BottomNavbar, type NavItem } from "../../src/components/ui";
 import { colores } from "../../src/lib/tokens";
 
 interface Tab {
-  /** Nombre del archivo de ruta dentro de `app/(tabs)/`. */
+  /** Nombre del archivo de ruta dentro de `app/(passenger)/`. */
   name: string;
   label: string;
   Icon: ComponentType<{ size?: number; color?: string }>;
 }
 
 const TABS: Tab[] = [
-  { name: "index", label: "Inicio", Icon: House },
-  { name: "viajes", label: "Viajes", Icon: Route },
+  { name: "index", label: "Buscar", Icon: House },
+  { name: "viajes", label: "Mis reservas", Icon: Route },
   { name: "historial", label: "Historial", Icon: Clock },
   { name: "perfil", label: "Perfil", Icon: User },
 ];
@@ -48,15 +50,18 @@ function BarraInferior({ state, navigation }: TabBarProps) {
   );
 }
 
-export default function TabsLayout() {
+export default function PassengerLayout() {
   return (
-    <Tabs
-      tabBar={(props) => <BarraInferior {...props} />}
-      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colores.surface } }}
-    >
-      {TABS.map(({ name }) => (
-        <Tabs.Screen key={name} name={name} />
-      ))}
-    </Tabs>
+    <View className="flex-1">
+      <Tabs
+        tabBar={(props) => <BarraInferior {...props} />}
+        screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: colores.surface } }}
+      >
+        {TABS.map(({ name }) => (
+          <Tabs.Screen key={name} name={name} />
+        ))}
+      </Tabs>
+      <PortalToggle />
+    </View>
   );
 }

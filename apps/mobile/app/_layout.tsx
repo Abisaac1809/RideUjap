@@ -15,6 +15,7 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useSession } from "../src/lib/auth-client";
+import { PortalProvider, usePortal } from "../src/lib/portal";
 import { colores } from "../src/lib/tokens";
 
 // Mantener el splash hasta que las fuentes carguen, para evitar el "flash" de
@@ -22,7 +23,7 @@ import { colores } from "../src/lib/tokens";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { data: session, isPending } = useSession();
+  const { isPending } = useSession();
   const [fontsLoaded] = useFonts({
     Sora_400Regular,
     Sora_500Medium,
@@ -46,17 +47,36 @@ export default function RootLayout() {
           <ActivityIndicator color={colores.primary} />
         </View>
       ) : (
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Protected guard={!!session}>
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="publicar" options={{ presentation: "modal" }} />
-            <Stack.Screen name="viaje" options={{ presentation: "modal" }} />
-          </Stack.Protected>
-          <Stack.Protected guard={!session}>
-            <Stack.Screen name="(auth)" />
-          </Stack.Protected>
-        </Stack>
+        <PortalProvider>
+          <RootNavigator />
+        </PortalProvider>
       )}
     </SafeAreaProvider>
+  );
+}
+
+/**
+ * El grupo del portal resuelto se declara primero, así que el navegador lo
+ * usa como pantalla inicial sin necesitar `initialRouteName` dinámico.
+ */
+function RootNavigator() {
+  const { data: session } = useSession();
+  const { portal } = usePortal();
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={!!session}>
+        {(portal === "driver" ? ["(driver)", "(passenger)"] : ["(passenger)", "(driver)"]).map(
+          (name) => (
+            <Stack.Screen key={name} name={name} />
+          ),
+        )}
+        <Stack.Screen name="publicar" options={{ presentation: "modal" }} />
+        <Stack.Screen name="viaje" options={{ presentation: "modal" }} />
+      </Stack.Protected>
+      <Stack.Protected guard={!session}>
+        <Stack.Screen name="(auth)" />
+      </Stack.Protected>
+    </Stack>
   );
 }
