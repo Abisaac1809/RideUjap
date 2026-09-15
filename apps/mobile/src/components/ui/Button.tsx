@@ -8,11 +8,15 @@ import {
   type PressableProps,
 } from "react-native";
 import Animated from "react-native-reanimated";
+import { cssInterop } from "nativewind";
 
 import { cn } from "../../lib/cn";
 import { usePressScale } from "../../lib/usePressScale";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+// createAnimatedComponent produce un componente que NativeWind no conoce; sin
+// esto el `className` se ignora en web y el botón queda sin fondo.
+cssInterop(AnimatedPressable, { className: "style" });
 
 export type ButtonVariant = "primary" | "outline" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";

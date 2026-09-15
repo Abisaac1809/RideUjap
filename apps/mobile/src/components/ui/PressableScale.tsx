@@ -1,10 +1,14 @@
 import { type ReactNode } from "react";
 import { Pressable, type GestureResponderEvent, type PressableProps } from "react-native";
 import Animated from "react-native-reanimated";
+import { cssInterop } from "nativewind";
 
 import { usePressScale } from "../../lib/usePressScale";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+// createAnimatedComponent produce un componente que NativeWind no conoce; sin
+// esto el `className` se ignora en web.
+cssInterop(AnimatedPressable, { className: "style" });
 
 export interface PressableScaleProps extends PressableProps {
   children: ReactNode;
