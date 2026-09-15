@@ -1,21 +1,3 @@
-/**
- * Validamos los `id` de usuario que vienen del `session.user` contra el patrón
- * que usa Better Auth en este proyecto (mantiene una sola fuente de verdad en
- * lugar de aceptar cualquier string).
- */
-const userIdParam = {
-  type: "object",
-  required: ["id"],
-  additionalProperties: false,
-  properties: {
-    id: {
-      type: "string",
-      minLength: 1,
-      maxLength: 128,
-    },
-  },
-};
-
 const meResponse = {
   type: "object",
   required: ["id", "name", "email", "image", "phone"],
@@ -29,13 +11,13 @@ const meResponse = {
   },
 };
 
-const trimmedNonEmptyString = {
+const nameField = {
   type: "string",
   minLength: 1,
   maxLength: 255,
 };
 
-const trimmedNonEmptyPhone = {
+const phoneField = {
   type: "string",
   pattern: "^[0-9+()\\-\\s]{6,32}$",
 };
@@ -50,12 +32,10 @@ export const updateMeSchema = {
     additionalProperties: false,
     minProperties: 1,
     properties: {
-      name: trimmedNonEmptyString,
+      name: nameField,
       image: { type: ["string", "null"], minLength: 1, maxLength: 2048 },
-      phone: trimmedNonEmptyPhone,
+      phone: phoneField,
     },
   },
   response: { 200: meResponse },
 };
-
-export { userIdParam };

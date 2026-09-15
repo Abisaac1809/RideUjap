@@ -8,6 +8,6 @@ export interface MeResponse {
 
 export interface UpdateMeBody {
   name?: string;
-  image?: string;
+  image?: string | null;
   phone?: string;
 }
