@@ -6,3 +6,9 @@ build/
 *.log
 .env
 .DS_Store
+
+.agents/
+.atl/
+.claude/
+.codegraph/
+skills-lock.json
