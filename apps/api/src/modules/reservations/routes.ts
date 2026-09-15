@@ -4,6 +4,7 @@ import type { FastifyInstance } from "fastify";
 import type { ContactResponse, DecideReservationBody, ReservationResponse } from "@rideujap/shared";
 
 import { requireAuth } from "../auth/require-auth";
+import { requireDriver } from "../driver/require-driver";
 import { db } from "../../db/index";
 import { isUniqueViolation } from "../../db/errors";
 import { reservations, trips, user } from "../../db/schema";
@@ -149,7 +150,7 @@ export async function reservationsRoutes(app: FastifyInstance) {
 
   app.patch<{ Params: { id: string }; Body: DecideReservationBody }>(
     "/reservations/:id",
-    { preHandler: requireAuth, schema: decideReservationSchema },
+    { preHandler: [requireAuth, requireDriver], schema: decideReservationSchema },
     async (request, reply) => {
       const actorId = request.user!.id;
       const reservationId = request.params.id;

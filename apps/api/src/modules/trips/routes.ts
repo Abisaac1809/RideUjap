@@ -9,6 +9,8 @@ import type {
 } from "@rideujap/shared";
 
 import { requireAuth } from "../auth/require-auth";
+import { requireDriver } from "../driver/require-driver";
+import { effectiveSeats } from "../driver/rules";
 import { db } from "../../db/index";
 import { trips, user } from "../../db/schema";
 import { httpError } from "../../lib/http-error";
@@ -86,7 +88,7 @@ export async function tripRoutes(app: FastifyInstance) {
 
   app.post<{ Body: CreateTripBody }>(
     "/trips",
-    { preHandler: requireAuth, schema: createTripSchema },
+    { preHandler: [requireAuth, requireDriver], schema: createTripSchema },
     async (request, reply): Promise<Trip> => {
       const driver = request.user!;
 
@@ -99,6 +101,8 @@ export async function tripRoutes(app: FastifyInstance) {
         throw httpError(400, "departureTime must be in the future");
       }
 
+      const seats = effectiveSeats(body.totalSeats, request.driver!.vehicle.seats);
+
       const [row] = await db
         .insert(trips)
         .values({
@@ -108,8 +112,8 @@ export async function tripRoutes(app: FastifyInstance) {
           pointLng: body.pointLng,
           pointText: body.pointText,
           departureTime,
-          totalSeats: body.totalSeats,
-          availableSeats: body.totalSeats,
+          totalSeats: seats,
+          availableSeats: seats,
           admissionMode: body.admissionMode,
           farePerPassenger: body.fare.toFixed(2),
         })
