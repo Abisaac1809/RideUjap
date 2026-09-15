@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Alert, RefreshControl, ScrollView, View } from "react-native";
+import { Alert, Platform, RefreshControl, ScrollView, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Route, TriangleAlert } from "lucide-react-native";
 import type { MyTripItem, MyTripsResponse, ReservationDecision } from "@rideujap/shared";
@@ -8,6 +8,16 @@ import { ApiError, decideReservation, getMyTrips } from "../lib/api";
 import { colores } from "../lib/tokens";
 import { MyTripCard } from "./MyTripCard";
 import { Button, Card, Text } from "./ui";
+
+// Alert.alert es un no-op en react-native-web; en web caemos a window.alert
+// para que los errores de la API no se pierdan en silencio.
+function notify(title: string, message: string) {
+  if (Platform.OS === "web") {
+    window.alert(`${title}\n\n${message}`);
+    return;
+  }
+  Alert.alert(title, message);
+}
 
 export interface MyTripsListProps {
   bucket: "upcoming" | "history";
@@ -56,7 +66,7 @@ export function MyTripsList({ bucket, role }: MyTripsListProps) {
     } catch (error) {
       const message =
         error instanceof ApiError ? error.message : "No pudimos actualizar la reserva.";
-      Alert.alert("No se pudo", message);
+      notify("No se pudo", message);
     } finally {
       setDecidingId(null);
     }
