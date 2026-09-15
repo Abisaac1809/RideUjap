@@ -11,7 +11,11 @@ import { tripRoutes } from "./modules/trips/routes";
 
 const app = Fastify({ logger: true });
 
-await app.register(cors, { origin: true, credentials: true });
+await app.register(cors, {
+  origin: true,
+  credentials: true,
+  methods: ["GET", "POST", "PATCH", "DELETE"],
+});
 
 await app.register(authRoutes);
 await app.register(healthRoutes);
