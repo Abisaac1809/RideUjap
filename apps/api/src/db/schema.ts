@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  date,
   doublePrecision,
   index,
   integer,
@@ -69,9 +70,38 @@ export const reservations = pgTable(
   ],
 );
 
+export const driverProfile = pgTable("driver_profile", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, { onDelete: "cascade" }),
+  licenseNumber: text("license_number").notNull(),
+  licenseExpiry: date("license_expiry").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const vehicle = pgTable("vehicle", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  driverProfileId: uuid("driver_profile_id")
+    .notNull()
+    .unique()
+    .references(() => driverProfile.id, { onDelete: "cascade" }),
+  make: text("make").notNull(),
+  model: text("model").notNull(),
+  year: integer("year").notNull(),
+  color: text("color").notNull(),
+  plate: text("plate").notNull(),
+  seats: integer("seats").notNull(),
+});
+
 export * from "./auth-schema";
 
 export type Trip = typeof trips.$inferSelect;
 export type NewTrip = typeof trips.$inferInsert;
 export type Reservation = typeof reservations.$inferSelect;
 export type NewReservation = typeof reservations.$inferInsert;
+export type DriverProfile = typeof driverProfile.$inferSelect;
+export type NewDriverProfile = typeof driverProfile.$inferInsert;
+export type Vehicle = typeof vehicle.$inferSelect;
+export type NewVehicle = typeof vehicle.$inferInsert;

@@ -2,13 +2,17 @@ import { auth } from "../modules/auth/auth";
 import { client, db } from "./index";
 import {
   account,
+  driverProfile,
   reservations,
   session,
   trips,
   user,
+  vehicle,
   verification,
+  type NewDriverProfile,
   type NewReservation,
   type NewTrip,
+  type NewVehicle,
 } from "./schema";
 
 type DemoUser = {
@@ -66,6 +70,8 @@ function yesterdayAt(hh: number, mm: number): Date {
 async function main() {
   await db.delete(reservations);
   await db.delete(trips);
+  await db.delete(vehicle);
+  await db.delete(driverProfile);
   await db.delete(session);
   await db.delete(account);
   await db.delete(verification);
@@ -86,6 +92,50 @@ async function main() {
   }
 
   const [ana, bruno, carla] = ids as [string, string, string, string];
+
+  // diego se queda solo como pasajero, para probar los flujos sin perfil de conductor.
+  const demoDriverProfiles: NewDriverProfile[] = [
+    { userId: ana, licenseNumber: "V-12345678", licenseExpiry: "2028-06-30" },
+    { userId: bruno, licenseNumber: "V-23456789", licenseExpiry: "2027-11-15" },
+    { userId: carla, licenseNumber: "V-34567890", licenseExpiry: "2026-09-01" },
+  ];
+  const insertedDriverProfiles = await db
+    .insert(driverProfile)
+    .values(demoDriverProfiles)
+    .returning();
+
+  const driverProfileByUserId = new Map(insertedDriverProfiles.map((p) => [p.userId, p]));
+
+  const demoVehicles: NewVehicle[] = [
+    {
+      driverProfileId: driverProfileByUserId.get(ana)!.id,
+      make: "Toyota",
+      model: "Corolla",
+      year: 2019,
+      color: "Blanco",
+      plate: "AB123CD",
+      seats: 4,
+    },
+    {
+      driverProfileId: driverProfileByUserId.get(bruno)!.id,
+      make: "Chevrolet",
+      model: "Aveo",
+      year: 2016,
+      color: "Gris",
+      plate: "CD456EF",
+      seats: 4,
+    },
+    {
+      driverProfileId: driverProfileByUserId.get(carla)!.id,
+      make: "Ford",
+      model: "Fiesta",
+      year: 2021,
+      color: "Rojo",
+      plate: "EF789GH",
+      seats: 4,
+    },
+  ];
+  await db.insert(vehicle).values(demoVehicles);
 
   const demoTrips: NewTrip[] = [
     {
@@ -179,7 +229,7 @@ async function main() {
   await db.insert(reservations).values(demoReservations);
 
   console.log(
-    `Seed done: ${ids.length} users, ${insertedTrips.length} trips, ${demoReservations.length} reservations.`,
+    `Seed done: ${ids.length} users, ${insertedDriverProfiles.length} drivers, ${insertedTrips.length} trips, ${demoReservations.length} reservations.`,
   );
   await client.end();
 }
