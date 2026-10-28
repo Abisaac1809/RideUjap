@@ -8,7 +8,7 @@ import { colores } from "../../src/lib/tokens";
 
 const TABS: PortalTab[] = [
   { name: "index", label: "Buscar", Icon: House },
-  { name: "viajes", label: "Mis reservas", Icon: Route },
+  { name: "viajes", label: "Reservas", Icon: Route },
   { name: "historial", label: "Historial", Icon: Clock },
   { name: "perfil", label: "Perfil", Icon: User },
 ];

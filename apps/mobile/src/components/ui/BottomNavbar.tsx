@@ -51,7 +51,7 @@ export function BottomNavbar({
       <View
         accessibilityRole="tablist"
         className={cn(
-          "flex-row items-center justify-around rounded-full bg-ink px-2 py-2.5",
+          "flex-row items-center gap-1 rounded-full bg-ink px-2 py-2",
           outlined && "border-[1.5px] border-primary",
         )}
       >
@@ -93,22 +93,26 @@ function NavButton({
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       onPress={onPress}
-      className="items-center justify-center gap-1 rounded-full px-3.5 py-2.5"
+      className="min-w-0 flex-1 items-center"
     >
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: activeColor, borderRadius: 999 },
-          pillStyle,
-        ]}
-      />
-      <View className="items-center">{item.icon(active)}</View>
-      <Text
-        className={cn("font-sora-medium text-[11px]", active ? "text-white" : "text-subtle")}
-        numberOfLines={1}
-      >
-        {item.label}
-      </Text>
+      {/* Cada item ocupa una fracción igual de la barra; la píldora abraza el
+          contenido sin salirse de esa fracción. */}
+      <View className="max-w-full items-center justify-center gap-0.5 rounded-full px-2 py-1.5">
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: activeColor, borderRadius: 999 },
+            pillStyle,
+          ]}
+        />
+        <View className="items-center">{item.icon(active)}</View>
+        <Text
+          className={cn("font-sora-medium text-[10px]", active ? "text-white" : "text-subtle")}
+          numberOfLines={1}
+        >
+          {item.label}
+        </Text>
+      </View>
     </Pressable>
   );
 }

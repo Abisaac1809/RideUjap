@@ -31,7 +31,7 @@ export function PortalTabBar({ state, navigation, tabs }: TabBarProps & { tabs: 
   const items: NavItem[] = tabs.map(({ name, label, Icon }) => ({
     key: name,
     label,
-    icon: (active) => <Icon size={20} color={active ? colores.primaryInk : colores.subtle} />,
+    icon: (active) => <Icon size={17} color={active ? colores.primaryInk : colores.subtle} />,
   }));
 
   return (
