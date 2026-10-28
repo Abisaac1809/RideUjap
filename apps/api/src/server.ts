@@ -16,7 +16,7 @@ const app = Fastify({ logger: true });
 await app.register(cors, {
   origin: true,
   credentials: true,
-  methods: ["GET", "POST", "PATCH", "DELETE"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
 });
 
 await app.register(authRoutes);
