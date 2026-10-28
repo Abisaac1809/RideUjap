@@ -68,6 +68,18 @@ export function isRateCurrent(
   return cached.valueDate === today || cached.checkedOn === today;
 }
 
+/**
+ * Fecha Valor a usar hoy: la más reciente que ya entró en vigor. Si todavía no
+ * hay ninguna (el BCV publica en la tarde la del día hábil siguiente y su
+ * página ya no muestra la de hoy), se usa la próxima publicada.
+ */
+export function effectiveValueDate(candidates: {
+  latestPast: string | null;
+  earliestFuture: string | null;
+}): string | null {
+  return candidates.latestPast ?? candidates.earliestFuture;
+}
+
 export function toVes(amount: number, rate: number): number {
   return Math.round(Number((amount * rate * 100).toPrecision(12))) / 100;
 }

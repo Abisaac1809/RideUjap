@@ -2,7 +2,15 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { caracasDate, isRateCurrent, parseBcvHtml, parseRate, toMoney, toVes } from "./rules";
+import {
+  caracasDate,
+  effectiveValueDate,
+  isRateCurrent,
+  parseBcvHtml,
+  parseRate,
+  toMoney,
+  toVes,
+} from "./rules";
 
 const fixture = readFileSync(new URL("./__fixtures__/bcv.html", import.meta.url), "utf8");
 
@@ -81,6 +89,24 @@ describe("isRateCurrent", () => {
     expect(isRateCurrent({ valueDate: "2026-10-27", checkedOn: "2026-10-27" }, "2026-10-28")).toBe(
       false,
     );
+  });
+});
+
+describe("effectiveValueDate", () => {
+  it("prefers the latest value date on or before today", () => {
+    expect(effectiveValueDate({ latestPast: "2026-10-28", earliestFuture: "2026-10-29" })).toBe(
+      "2026-10-28",
+    );
+  });
+
+  it("falls back to the next published value date when none applies yet", () => {
+    expect(effectiveValueDate({ latestPast: null, earliestFuture: "2026-10-29" })).toBe(
+      "2026-10-29",
+    );
+  });
+
+  it("returns null when no rates are stored", () => {
+    expect(effectiveValueDate({ latestPast: null, earliestFuture: null })).toBeNull();
   });
 });
 
