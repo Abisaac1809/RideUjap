@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { useRef, useState } from "react";
+import { ScrollView, View, type TextInput } from "react-native";
 import { Link } from "expo-router";
 import { Mail, TriangleAlert } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,7 +7,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Logo } from "../../src/components/Logo";
 import { Button, Card, Input, PasswordInput, Text } from "../../src/components/ui";
 import { signIn } from "../../src/lib/auth-client";
+import { isValidEmail, type FieldErrors } from "../../src/lib/form";
 import { colores } from "../../src/lib/tokens";
+
+type Field = "email" | "password";
 
 type State = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
@@ -15,10 +18,17 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [state, setState] = useState<State>({ kind: "idle" });
+  const [errors, setErrors] = useState<FieldErrors<Field>>({});
+  const passwordRef = useRef<TextInput>(null);
 
   async function onSubmit() {
-    if (!email.trim() || !password) {
-      setState({ kind: "error", message: "Ingresa tu correo y contraseña." });
+    const next: FieldErrors<Field> = {};
+    if (!email.trim()) next.email = "Ingresa tu correo.";
+    else if (!isValidEmail(email)) next.email = "Revisa el formato del correo.";
+    if (!password) next.password = "Ingresa tu contraseña.";
+    setErrors(next);
+    if (Object.keys(next).length > 0) {
+      setState({ kind: "idle" });
       return;
     }
 
@@ -48,17 +58,35 @@ export default function LoginScreen() {
             label="Correo"
             placeholder="tucorreo@ujap.edu.ve"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              setErrors((prev) => ({ ...prev, email: undefined }));
+            }}
+            error={errors.email}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => passwordRef.current?.focus()}
             leftIcon={<Mail size={18} color={colores.muted} />}
           />
           <PasswordInput
+            ref={passwordRef}
             label="Contraseña"
             placeholder="••••••••"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              setErrors((prev) => ({ ...prev, password: undefined }));
+            }}
+            error={errors.password}
+            autoComplete="current-password"
+            textContentType="password"
+            returnKeyType="go"
+            onSubmitEditing={onSubmit}
           />
 
           {state.kind === "error" ? (
