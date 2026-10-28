@@ -9,6 +9,7 @@ import type {
   PlaceSuggestion,
   ReservationDecision,
   ReservationResponse,
+  ScheduleDay,
   Trip,
   TripDirection,
   UpdateMeBody,
@@ -132,6 +133,14 @@ export function decideReservation(
 
 export function updateMe(body: UpdateMeBody): Promise<MeResponse> {
   return apiFetch<MeResponse>("/me", { method: "PATCH", body: JSON.stringify(body) });
+}
+
+export function getSchedule(): Promise<ScheduleDay[]> {
+  return apiFetch<ScheduleDay[]>("/schedule");
+}
+
+export function saveSchedule(days: ScheduleDay[]): Promise<ScheduleDay[]> {
+  return apiFetch<ScheduleDay[]>("/schedule", { method: "PUT", body: JSON.stringify({ days }) });
 }
 
 export function getDriverProfile(): Promise<DriverStatusResponse> {
