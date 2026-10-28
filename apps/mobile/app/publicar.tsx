@@ -3,7 +3,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Coins, TriangleAlert, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { AdmissionMode, PlaceDetails, TripDirection } from "@rideujap/shared";
+import type { AdmissionMode, Money, PlaceDetails, TripDirection } from "@rideujap/shared";
 
 import { DIRECTION_COPY, RouteHint } from "../src/components/RouteHint";
 import { PlacePicker } from "../src/components/PlacePicker";
@@ -11,13 +11,23 @@ import { Button, Card, Input, Segmented, Stepper, Text } from "../src/components
 import { ApiError, createTrip, estimateFare } from "../src/lib/api";
 import { usePortal } from "../src/lib/portal";
 import { useDismiss } from "../src/lib/useDismiss";
-import { formatFare } from "../src/lib/format";
+import { formatBs, formatFare } from "../src/lib/format";
 import { colores } from "../src/lib/tokens";
 
 const ADMISSION_COPY: Record<AdmissionMode, string> = {
   request: "Revisas cada solicitud antes de aceptar a bordo.",
   auto: "Los pasajeros con cupo se unen al instante.",
 };
+
+function parseFare(text: string): number | null {
+  const value = Number(text.replace(",", "."));
+  return text.trim() && !Number.isNaN(value) && value >= 0 ? value : null;
+}
+
+function impliedRate(fare: Money | null): number | null {
+  if (!fare || fare.ves === null || fare.usd <= 0) return null;
+  return fare.ves / fare.usd;
+}
 
 interface Day {
   date: Date;
@@ -69,7 +79,7 @@ export default function PublicarScreen() {
   const [seats, setSeats] = useState(() => Math.min(3, driverStatus?.vehicle?.seats ?? 3));
   const [admission, setAdmission] = useState<AdmissionMode>("request");
   const [fare, setFare] = useState("");
-  const [suggested, setSuggested] = useState<number | null>(null);
+  const [suggested, setSuggested] = useState<Money | null>(null);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
 
   useEffect(() => {
@@ -83,7 +93,7 @@ export default function PublicarScreen() {
       .then((value) => {
         if (!active) return;
         setSuggested(value);
-        setFare((current) => (current.trim() ? current : String(value)));
+        setFare((current) => (current.trim() ? current : String(value.usd)));
       })
       .catch(() => active && setSuggested(null));
 
@@ -91,6 +101,10 @@ export default function PublicarScreen() {
       active = false;
     };
   }, [place, seats]);
+
+  const rate = impliedRate(suggested);
+  const typedFare = parseFare(fare);
+  const fareInBs = rate !== null && typedFare !== null ? typedFare * rate : null;
 
   function departureFromForm(): Date | null {
     const parsed = parseTime(time);
@@ -116,8 +130,8 @@ export default function PublicarScreen() {
       return;
     }
 
-    const fareNum = Number(fare.replace(",", "."));
-    if (!fare.trim() || Number.isNaN(fareNum) || fareNum < 0) {
+    const fareNum = parseFare(fare);
+    if (fareNum === null) {
       setStatus({ kind: "error", message: "Indica un aporte válido (0 o más)." });
       return;
     }
@@ -262,7 +276,7 @@ export default function PublicarScreen() {
           </View>
 
           <View className="gap-2">
-            <Text variant="label">Aporte por pasajero</Text>
+            <Text variant="label">Aporte por pasajero (USD)</Text>
             <Input
               placeholder="0,00"
               value={fare}
@@ -270,10 +284,15 @@ export default function PublicarScreen() {
               keyboardType="decimal-pad"
               leftIcon={<Coins size={18} color={colores.muted} />}
             />
+            {fareInBs !== null ? (
+              <Text variant="muted" className="text-xs">
+                ≈ {formatBs(fareInBs)}
+              </Text>
+            ) : null}
             {suggested !== null ? (
               <Pressable
                 accessibilityRole="button"
-                onPress={() => setFare(String(suggested))}
+                onPress={() => setFare(String(suggested.usd))}
                 className="flex-row items-center justify-between rounded-control bg-primary/10 px-3 py-2"
               >
                 <Text className="text-primary">Sugerido: {formatFare(suggested)}</Text>
