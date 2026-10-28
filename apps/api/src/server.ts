@@ -8,6 +8,7 @@ import { meRoutes } from "./modules/me/routes";
 import { myTripsRoutes } from "./modules/my-trips/routes";
 import { placesRoutes } from "./modules/places/routes";
 import { reservationsRoutes } from "./modules/reservations/routes";
+import { scheduleRoutes } from "./modules/schedule/routes";
 import { tripRoutes } from "./modules/trips/routes";
 
 const app = Fastify({ logger: true });
@@ -26,6 +27,7 @@ await app.register(tripRoutes);
 await app.register(placesRoutes);
 await app.register(reservationsRoutes);
 await app.register(myTripsRoutes);
+await app.register(scheduleRoutes);
 
 const port = Number(process.env.PORT ?? 3000);
 
