@@ -1,6 +1,7 @@
 {
   "extends": "@rideujap/tsconfig/react-native.json",
   "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
     "types": ["react", "react-native", "nativewind/types"]
   },
   "include": ["App.tsx", "nativewind-env.d.ts", "**/*.ts", "**/*.tsx"]
