@@ -18,7 +18,6 @@ import { TripRoute } from "../src/components/TripRoute";
 import { Button, Card, Text } from "../src/components/ui";
 import { ApiError, createReservation } from "../src/lib/api";
 import { useSession } from "../src/lib/auth-client";
-import { usePortalColors } from "../src/lib/portal";
 import { useDismiss } from "../src/lib/useDismiss";
 import { formatFare, formatSeats, formatWhen } from "../src/lib/format";
 import { describeTrip, formatOccupancy, formatVehicle } from "../src/lib/trip-view";
@@ -202,13 +201,12 @@ function ReserveSection({
   onReserve: () => void;
   onGoToTrips: () => void;
 }) {
-  const palette = usePortalColors();
   if (state.kind === "done") {
     const enrolled = state.result.status === "enrolled";
     return (
       <Card className="gap-4">
         <View className="flex-row items-center gap-3">
-          <CheckCircle2 size={24} color={palette.primary} />
+          <CheckCircle2 size={24} color={colores.primary} />
           <Text variant="subtitle" className="flex-1">
             {enrolled ? "¡Listo, vas en este viaje!" : "Solicitud enviada"}
           </Text>

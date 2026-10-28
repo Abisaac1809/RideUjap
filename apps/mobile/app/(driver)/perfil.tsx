@@ -14,7 +14,7 @@ import { Avatar, Button, Card, Input, Stepper, Text } from "../../src/components
 import { ApiError, updateDriverProfile } from "../../src/lib/api";
 import { signOut, useSession } from "../../src/lib/auth-client";
 import { isoToDisplayDate, maskDate, validateFutureDate } from "../../src/lib/form";
-import { usePortal, usePortalColors } from "../../src/lib/portal";
+import { usePortal } from "../../src/lib/portal";
 import { colores } from "../../src/lib/tokens";
 
 type EditStatus = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
@@ -22,7 +22,6 @@ type EditStatus = { kind: "idle" } | { kind: "loading" } | { kind: "error"; mess
 export default function DriverPerfilScreen() {
   const { data: session } = useSession();
   const { driverStatus, refreshDriverStatus } = usePortal();
-  const palette = usePortalColors();
   const [signingOut, setSigningOut] = useState(false);
 
   const user = session?.user;
@@ -42,7 +41,7 @@ export default function DriverPerfilScreen() {
             <Text variant="muted">{user?.email}</Text>
           </View>
           <View className="flex-row items-center gap-1.5 rounded-full bg-primary-tint px-3 py-1">
-            <GraduationCap size={14} color={palette.primary} />
+            <GraduationCap size={14} color={colores.primary} />
             <Text className="font-sora-semibold text-xs text-primary">Comunidad UJAP</Text>
           </View>
         </View>
@@ -72,7 +71,6 @@ function VehicleSection({
   onSaved: () => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
-  const palette = usePortalColors();
   const [licenseNumber, setLicenseNumber] = useState(
     driverStatus?.driverProfile?.licenseNumber ?? "",
   );
@@ -220,12 +218,12 @@ function VehicleSection({
         ) : (
           <>
             <DatoPerfil
-              icono={<User size={18} color={palette.primary} />}
+              icono={<User size={18} color={colores.primary} />}
               etiqueta="Licencia"
               valor={driverProfile.licenseNumber}
             />
             <DatoPerfil
-              icono={<Car size={18} color={palette.primary} />}
+              icono={<Car size={18} color={colores.primary} />}
               etiqueta="Vehículo"
               valor={`${vehicle.make} ${vehicle.model} · ${vehicle.plate}`}
             />
