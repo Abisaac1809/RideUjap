@@ -5,7 +5,7 @@ import { PHONE_PATTERN } from "@rideujap/shared";
 
 import { ApiError, updateMe } from "../lib/api";
 import { useSession } from "../lib/auth-client";
-import { colores } from "../lib/tokens";
+import { usePortalColors } from "../lib/portal";
 import { Button, Card, IconBadge, Input, Text } from "./ui";
 
 const PHONE_RE = new RegExp(PHONE_PATTERN);
@@ -36,6 +36,7 @@ export function DatoPerfil({
 
 export function AccountCard() {
   const { data: session, refetch } = useSession();
+  const palette = usePortalColors();
   const user = session?.user;
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -100,7 +101,7 @@ export function AccountCard() {
               maxLength={32}
             />
             <DatoPerfil
-              icono={<Mail size={18} color={colores.primary} />}
+              icono={<Mail size={18} color={palette.primary} />}
               etiqueta="Correo"
               valor={user?.email}
             />
@@ -117,17 +118,17 @@ export function AccountCard() {
         ) : (
           <>
             <DatoPerfil
-              icono={<User size={18} color={colores.primary} />}
+              icono={<User size={18} color={palette.primary} />}
               etiqueta="Nombre"
               valor={user?.name}
             />
             <DatoPerfil
-              icono={<Mail size={18} color={colores.primary} />}
+              icono={<Mail size={18} color={palette.primary} />}
               etiqueta="Correo"
               valor={user?.email}
             />
             <DatoPerfil
-              icono={<Phone size={18} color={colores.primary} />}
+              icono={<Phone size={18} color={palette.primary} />}
               etiqueta="Teléfono"
               valor={user?.phone}
             />

@@ -4,6 +4,7 @@ import { Check, MapPin, TriangleAlert, X } from "lucide-react-native";
 import type { PlaceDetails, PlaceSuggestion } from "@rideujap/shared";
 
 import { ApiError, retrievePlace, suggestPlaces } from "../lib/api";
+import { usePortalColors } from "../lib/portal";
 import { colores } from "../lib/tokens";
 import { Input, Text } from "./ui";
 
@@ -34,6 +35,7 @@ type Status =
 
 export function PlacePicker({ label, placeholder, value, onChange, error }: PlacePickerProps) {
   const [query, setQuery] = useState(value?.text ?? "");
+  const palette = usePortalColors();
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const session = useRef(newSession());
   const skipNextSearch = useRef(false);
@@ -107,7 +109,7 @@ export function PlacePicker({ label, placeholder, value, onChange, error }: Plac
         error={error}
         leftIcon={
           selected ? (
-            <Check size={18} color={colores.primary} />
+            <Check size={18} color={palette.primary} />
           ) : (
             <MapPin size={18} color={colores.muted} />
           )

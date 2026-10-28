@@ -2,6 +2,7 @@ import { View } from "react-native";
 import { GraduationCap, MapPin } from "lucide-react-native";
 import type { TripDirection } from "@rideujap/shared";
 
+import { usePortalColors } from "../lib/portal";
 import { colores } from "../lib/tokens";
 import type { TripViewer } from "../lib/trip-view";
 import { RouteConnector } from "./RouteConnector";
@@ -50,10 +51,11 @@ export function RouteHint({
   place: string;
   viewer: TripViewer;
 }) {
+  const palette = usePortalColors();
   const zona = place.trim() || "Tu zona";
   const campus = {
     label: "UJAP",
-    icon: <GraduationCap size={20} color={colores.primary} />,
+    icon: <GraduationCap size={20} color={palette.primary} />,
     accent: true,
   };
   const spot = { label: zona, icon: <MapPin size={20} color={colores.muted} />, accent: false };

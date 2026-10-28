@@ -7,11 +7,14 @@ module.exports = {
     extend: {
       colors: {
         // Design tokens de RideUJAP: teal de marca + acento coral, neutros cálidos.
+        // La familia primary depende del portal activo: los valores salen de
+        // variables CSS (canales RGB) definidas en global.css y sobrescritas
+        // con `vars()` desde la raíz de la app.
         primary: {
-          DEFAULT: "#0d7a6f",
-          dark: "#0a5f56",
-          tint: "#e6f4f2",
-          ink: "#ffffff",
+          DEFAULT: "rgb(var(--color-primary) / <alpha-value>)",
+          dark: "rgb(var(--color-primary-dark) / <alpha-value>)",
+          tint: "rgb(var(--color-primary-tint) / <alpha-value>)",
+          ink: "rgb(var(--color-primary-ink) / <alpha-value>)",
         },
         accent: {
           DEFAULT: "#ff6b4a",
@@ -19,6 +22,7 @@ module.exports = {
         },
         ink: "#1a1614",
         muted: "#8a827d",
+        subtle: "#9a938d",
         surface: "#faf8f6",
         line: "#ece7e3",
       },

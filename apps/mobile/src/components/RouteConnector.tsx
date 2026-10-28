@@ -13,6 +13,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { usePortalColors } from "../lib/portal";
 import { colores } from "../lib/tokens";
 
 const ICON = 16;
@@ -29,6 +30,7 @@ const FLIP_DURATION = 350;
  */
 export function RouteConnector({ reverse = false }: { reverse?: boolean }) {
   const [width, setWidth] = useState(0);
+  const palette = usePortalColors();
   const progress = useSharedValue(0);
   // 0 = normal (viaja →), 1 = invertido (viaja ←). Transiciona suave al cambiar.
   const flip = useSharedValue(reverse ? 1 : 0);
@@ -105,7 +107,7 @@ export function RouteConnector({ reverse = false }: { reverse?: boolean }) {
       ) : null}
       {/* Ícono que recorre la línea. */}
       <Animated.View style={[{ position: "absolute", left: 8 }, iconStyle]}>
-        <SendHorizontal size={ICON} color={colores.primary} />
+        <SendHorizontal size={ICON} color={palette.primary} />
       </Animated.View>
     </View>
   );
