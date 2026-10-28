@@ -15,6 +15,13 @@
       "when": 1787111665897,
       "tag": "0001_violet_sally_floyd",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793216949832,
+      "tag": "0002_driver_profile_vehicle",
+      "breakpoints": true
     }
   ]
 }
