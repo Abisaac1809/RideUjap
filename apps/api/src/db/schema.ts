@@ -25,6 +25,7 @@ export const reservationStatusEnum = pgEnum("reservation_status", [
   "accepted",
   "rejected",
 ]);
+export const currencyEnum = pgEnum("currency", ["USD", "EUR"]);
 
 export const trips = pgTable(
   "trips",
@@ -96,6 +97,20 @@ export const vehicle = pgTable("vehicle", {
   seats: integer("seats").notNull(),
 });
 
+export const exchangeRate = pgTable(
+  "exchange_rate",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    currency: currencyEnum("currency").notNull(),
+    valueDate: date("value_date").notNull(),
+    rate: numeric("rate", { precision: 18, scale: 8 }).notNull(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("exchange_rate_currency_value_date_uidx").on(table.currency, table.valueDate),
+  ],
+);
+
 export const schedules = pgTable(
   "schedules",
   {
@@ -120,3 +135,5 @@ export type DriverProfile = typeof driverProfile.$inferSelect;
 export type NewDriverProfile = typeof driverProfile.$inferInsert;
 export type Vehicle = typeof vehicle.$inferSelect;
 export type NewVehicle = typeof vehicle.$inferInsert;
+export type ExchangeRate = typeof exchangeRate.$inferSelect;
+export type NewExchangeRate = typeof exchangeRate.$inferInsert;

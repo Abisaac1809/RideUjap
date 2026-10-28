@@ -4,6 +4,7 @@ import type { MyTripItem, MyTripsResponse, TripReservation } from "@rideujap/sha
 
 import { requireAuth } from "../auth/require-auth";
 import { toVehiclePublic } from "../driver/dto";
+import { exchangeRateService } from "../exchange-rate/index";
 import { db } from "../../db/index";
 import { driverProfile, reservations, trips, user, vehicle } from "../../db/schema";
 import { canRevealPhone, classifyMyTrip } from "../reservations/rules";
@@ -86,6 +87,7 @@ export async function myTripsRoutes(app: FastifyInstance) {
         .leftJoin(vehicle, eq(vehicle.driverProfileId, driverProfile.id))
         .where(eq(reservations.passengerId, actorId));
 
+      const toMoney = await exchangeRateService.getConverter();
       const upcoming: MyTripItem[] = [];
       const history: MyTripItem[] = [];
 
@@ -98,7 +100,7 @@ export async function myTripsRoutes(app: FastifyInstance) {
 
         (bucket === "upcoming" ? upcoming : history).push({
           role: "driver",
-          trip: toDto(row),
+          trip: toDto(row, toMoney),
           reservations: reservationsByTrip.get(row.id) ?? [],
         });
       }
@@ -115,7 +117,7 @@ export async function myTripsRoutes(app: FastifyInstance) {
 
         (bucket === "upcoming" ? upcoming : history).push({
           role: "passenger",
-          trip: toDto(row),
+          trip: toDto(row, toMoney),
           reservation: {
             id: row.reservationId,
             status: row.reservationStatus,

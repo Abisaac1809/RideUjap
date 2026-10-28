@@ -3,11 +3,13 @@ import type {
   DriverOnboardingBody,
   DriverProfileUpdateBody,
   DriverStatusResponse,
+  FareEstimateResponse,
   MeResponse,
   MyTripsResponse,
   PlaceDetails,
   PlaceSuggestion,
   ReservationDecision,
+  Money,
   ReservationResponse,
   ScheduleDay,
   Trip,
@@ -97,15 +99,13 @@ export interface FareEstimateParams {
   seats: number;
 }
 
-export async function estimateFare(params: FareEstimateParams): Promise<number> {
+export async function estimateFare(params: FareEstimateParams): Promise<Money> {
   const query = new URLSearchParams({
     lat: String(params.lat),
     lng: String(params.lng),
     seats: String(params.seats),
   });
-  const { suggestedFare } = await apiFetch<{ suggestedFare: number }>(
-    `/trips/fare-estimate?${query}`,
-  );
+  const { suggestedFare } = await apiFetch<FareEstimateResponse>(`/trips/fare-estimate?${query}`);
   return suggestedFare;
 }
 

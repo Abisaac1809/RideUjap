@@ -1,3 +1,5 @@
+import type { Money } from "./money";
+
 export type TripDirection = "outbound" | "inbound";
 export type TripStatus = "active" | "completed" | "cancelled";
 export type AdmissionMode = "auto" | "request";
@@ -12,7 +14,7 @@ export interface Trip {
   availableSeats: number;
   totalSeats: number;
   admissionMode: AdmissionMode;
-  farePerPassenger: number | null;
+  farePerPassenger: Money | null;
   status: TripStatus;
   driver: {
     id: string;
@@ -36,7 +38,7 @@ export interface FareEstimateQuery {
 }
 
 export interface FareEstimateResponse {
-  suggestedFare: number;
+  suggestedFare: Money;
 }
 
 export interface CreateTripBody {

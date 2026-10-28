@@ -148,7 +148,7 @@ async function main() {
       totalSeats: 3,
       availableSeats: 3,
       admissionMode: "auto",
-      farePerPassenger: "210.00",
+      farePerPassenger: "2.50",
     },
     {
       driverId: ana,
@@ -160,7 +160,7 @@ async function main() {
       totalSeats: 4,
       availableSeats: 4,
       admissionMode: "request",
-      farePerPassenger: "140.00",
+      farePerPassenger: "1.50",
     },
     {
       driverId: bruno,
@@ -185,7 +185,7 @@ async function main() {
       totalSeats: 1,
       availableSeats: 1,
       admissionMode: "auto",
-      farePerPassenger: "180.00",
+      farePerPassenger: "2.00",
     },
     // Viaje lleno: no debe aceptar más reservas.
     {
@@ -198,7 +198,7 @@ async function main() {
       totalSeats: 2,
       availableSeats: 0,
       admissionMode: "auto",
-      farePerPassenger: "200.00",
+      farePerPassenger: "2.25",
     },
     // Viaje pasado: aparece en el historial de "mis viajes".
     {
@@ -211,7 +211,7 @@ async function main() {
       totalSeats: 3,
       availableSeats: 2,
       admissionMode: "auto",
-      farePerPassenger: "210.00",
+      farePerPassenger: "2.50",
       status: "completed",
     },
   ];

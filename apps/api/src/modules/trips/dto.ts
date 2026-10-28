@@ -1,4 +1,4 @@
-import type { Trip } from "@rideujap/shared";
+import type { Money, Trip } from "@rideujap/shared";
 
 import { trips, user } from "../../db/schema";
 
@@ -40,7 +40,7 @@ export type TripRow = {
   driverImage: string | null;
 };
 
-export function toDto(row: TripRow): Trip {
+export function toDto(row: TripRow, toMoney: (usd: number) => Money): Trip {
   return {
     id: row.id,
     direction: row.direction,
@@ -51,7 +51,7 @@ export function toDto(row: TripRow): Trip {
     availableSeats: row.availableSeats,
     totalSeats: row.totalSeats,
     admissionMode: row.admissionMode,
-    farePerPassenger: row.farePerPassenger === null ? null : Number(row.farePerPassenger),
+    farePerPassenger: row.farePerPassenger === null ? null : toMoney(Number(row.farePerPassenger)),
     status: row.status,
     driver: {
       id: row.driverId,
