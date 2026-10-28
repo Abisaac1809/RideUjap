@@ -16,6 +16,8 @@ import { signOut, useSession } from "../../src/lib/auth-client";
 import { usePortal } from "../../src/lib/portal";
 import { colores } from "../../src/lib/tokens";
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 type EditStatus = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
 export default function DriverPerfilScreen() {
@@ -85,8 +87,34 @@ function VehicleSection({
   const [status, setStatus] = useState<EditStatus>({ kind: "idle" });
 
   if (!driverStatus?.driverProfile || !driverStatus.vehicle) return null;
+  const { driverProfile, vehicle } = driverStatus;
+
+  function toggle() {
+    setLicenseNumber(driverProfile.licenseNumber);
+    setLicenseExpiry(driverProfile.licenseExpiry);
+    setMake(vehicle.make);
+    setModel(vehicle.model);
+    setYear(String(vehicle.year));
+    setColor(vehicle.color);
+    setPlate(vehicle.plate);
+    setSeats(vehicle.seats);
+    setStatus({ kind: "idle" });
+    setEditing((v) => !v);
+  }
 
   async function onSave() {
+    if (!licenseNumber.trim()) {
+      setStatus({ kind: "error", message: "Escribe tu número de licencia." });
+      return;
+    }
+    if (!DATE_RE.test(licenseExpiry.trim())) {
+      setStatus({ kind: "error", message: "La fecha de vencimiento debe ser AAAA-MM-DD." });
+      return;
+    }
+    if (!make.trim() || !model.trim() || !color.trim() || !plate.trim()) {
+      setStatus({ kind: "error", message: "Completa todos los datos del vehículo." });
+      return;
+    }
     const yearNum = Number(year);
     if (!Number.isInteger(yearNum) || yearNum < MIN_VEHICLE_YEAR || yearNum > MAX_VEHICLE_YEAR) {
       setStatus({ kind: "error", message: "Indica un año de vehículo válido." });
@@ -124,7 +152,8 @@ function VehicleSection({
           size="sm"
           variant="ghost"
           label={editing ? "Cancelar" : "Editar"}
-          onPress={() => setEditing((v) => !v)}
+          disabled={status.kind === "loading"}
+          onPress={toggle}
         />
       </View>
 
@@ -177,12 +206,12 @@ function VehicleSection({
             <DatoPerfil
               icono={<User size={18} color={colores.primary} />}
               etiqueta="Licencia"
-              valor={driverStatus.driverProfile.licenseNumber}
+              valor={driverProfile.licenseNumber}
             />
             <DatoPerfil
               icono={<Car size={18} color={colores.primary} />}
               etiqueta="Vehículo"
-              valor={`${driverStatus.vehicle.make} ${driverStatus.vehicle.model} · ${driverStatus.vehicle.plate}`}
+              valor={`${vehicle.make} ${vehicle.model} · ${vehicle.plate}`}
             />
           </>
         )}

@@ -23,7 +23,7 @@ export async function authRoutes(app: FastifyInstance) {
         return reply.send(res.body ? await res.text() : null);
       } catch (err) {
         app.log.error(err, "Better Auth handler error");
-        return reply.status(500).send({ error: "Authentication error" });
+        return reply.status(500).send({ error: "No se pudo completar la autenticación" });
       }
     },
   });
