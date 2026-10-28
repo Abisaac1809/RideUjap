@@ -1,82 +1,55 @@
-import { useEffect } from "react";
-import { Pressable, View } from "react-native";
-import Animated, {
-  interpolateColor,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import { View } from "react-native";
+import { Backpack, Car } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { cn } from "../lib/cn";
-import { usePortal, type Portal } from "../lib/portal";
-import { portalPalettes } from "../lib/tokens";
-import { Text } from "./ui";
+import { usePortal } from "../lib/portal";
+import { colores, portalPalettes } from "../lib/tokens";
+import { PressableScale, Text } from "./ui";
 
-const SEGMENT_WIDTH = 88;
-const OPTIONS: { value: Portal; label: string }[] = [
-  { value: "passenger", label: "Pasajero" },
-  { value: "driver", label: "Conductor" },
-];
+const SHADOW = {
+  shadowColor: colores.ink,
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.12,
+  shadowRadius: 10,
+  elevation: 4,
+};
 
 /**
- * Control segmentado flotante para cambiar entre el portal de pasajero y el de
- * conductor. Solo aparece si el usuario tiene perfil de conductor.
+ * Botón flotante para cambiar al otro portal. El círculo lleva el color e
+ * ícono del portal destino: es el mismo color que luego cubre la pantalla en
+ * la transición. Solo aparece si el usuario tiene perfil de conductor.
  */
 export function PortalToggle() {
   const { isDriver, portal, switching, setPortal } = usePortal();
   const insets = useSafeAreaInsets();
-  const selected = switching ?? portal;
-
-  // 0 = pasajero, 1 = conductor; mueve el thumb y mezcla su color.
-  const position = useSharedValue(selected === "driver" ? 1 : 0);
-
-  useEffect(() => {
-    position.value = withSpring(selected === "driver" ? 1 : 0, { damping: 16, stiffness: 220 });
-  }, [selected, position]);
-
-  const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: position.value * SEGMENT_WIDTH }],
-    backgroundColor: interpolateColor(
-      position.value,
-      [0, 1],
-      [portalPalettes.passenger.primary, portalPalettes.driver.primary],
-    ),
-  }));
 
   if (!isDriver) return null;
 
+  const target = portal === "driver" ? "passenger" : "driver";
+  const label = target === "driver" ? "Conductor" : "Pasajero";
+  const Icon = target === "driver" ? Car : Backpack;
+
   return (
-    <View
-      accessibilityRole="tablist"
-      style={{ top: insets.top + 8 }}
-      className="absolute right-4 z-10 flex-row rounded-full bg-ink p-1"
-    >
-      <Animated.View
-        style={[{ width: SEGMENT_WIDTH }, thumbStyle]}
-        className="absolute bottom-1 left-1 top-1 rounded-full"
-      />
-      {OPTIONS.map((option) => {
-        const active = option.value === selected;
-        return (
-          <Pressable
-            key={option.value}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: active }}
-            accessibilityLabel={`Modo ${option.label.toLowerCase()}`}
-            onPress={() => !active && setPortal(option.value)}
-            disabled={switching !== null}
-            style={{ width: SEGMENT_WIDTH }}
-            className="items-center py-1.5"
-          >
-            <Text
-              className={cn("font-sora-semibold text-xs", active ? "text-white" : "text-subtle")}
-            >
-              {option.label}
-            </Text>
-          </Pressable>
-        );
-      })}
+    <View style={[SHADOW, { top: insets.top + 8 }]} className="absolute right-4 z-10 rounded-full">
+      <PressableScale
+        accessibilityRole="button"
+        accessibilityLabel={`Cambiar a modo ${label.toLowerCase()}`}
+        onPress={() => setPortal(target)}
+        disabled={switching !== null}
+        scaleTo={0.94}
+        className="flex-row items-center gap-2 rounded-full border border-line bg-white py-1 pl-1 pr-3.5"
+      >
+        <View
+          style={{ backgroundColor: portalPalettes[target].primary }}
+          className="h-8 w-8 items-center justify-center rounded-full"
+        >
+          <Icon size={16} color={colores.primaryInk} />
+        </View>
+        <View>
+          <Text className="text-[10px] leading-3 text-muted">Cambiar a</Text>
+          <Text className="font-sora-semibold text-[13px] leading-4 text-ink">{label}</Text>
+        </View>
+      </PressableScale>
     </View>
   );
 }
