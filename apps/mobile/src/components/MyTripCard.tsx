@@ -1,12 +1,14 @@
 import { Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
-import { ArrowRight, Clock, Users } from "lucide-react-native";
+import { Car, Users } from "lucide-react-native";
 import type { MyTripItem, ReservationDecision, ReservationStatus } from "@rideujap/shared";
 
 import { cn } from "../lib/cn";
-import { formatFare, formatSeats, formatWhen } from "../lib/format";
+import { formatFare } from "../lib/format";
 import { colores } from "../lib/tokens";
+import { formatOccupancy, formatVehicle } from "../lib/trip-view";
 import { ContactButton, StatusBadge } from "./StatusBadge";
+import { TripRoute } from "./TripRoute";
 import { Button, Card, Text } from "./ui";
 
 export interface MyTripCardProps {
@@ -23,8 +25,6 @@ const PASSENGER_HINT: Partial<Record<ReservationStatus, string>> = {
 export function MyTripCard({ item, onDecide, decidingId }: MyTripCardProps) {
   const router = useRouter();
   const { trip } = item;
-  const [origin, destination] =
-    trip.direction === "outbound" ? ["UJAP", trip.pointText] : [trip.pointText, "UJAP"];
 
   function openDetail() {
     router.push({
@@ -36,35 +36,22 @@ export function MyTripCard({ item, onDecide, decidingId }: MyTripCardProps) {
   return (
     <Card className="gap-3">
       <Pressable accessibilityRole="button" onPress={openDetail} className="gap-3">
+        {item.role === "passenger" ? <StatusBadge status={item.reservation.status} /> : null}
+
+        <TripRoute trip={trip} viewer={item.role} />
+
         <View className="flex-row items-center justify-between">
-          <RoleBadge role={item.role} />
-          {item.role === "passenger" ? <StatusBadge status={item.reservation.status} /> : null}
-        </View>
-
-        <View className="flex-row items-center gap-2">
-          <Text variant="subtitle" className="flex-1" numberOfLines={1}>
-            {origin}
-          </Text>
-          <ArrowRight size={16} color={colores.muted} />
-          <Text variant="subtitle" className="flex-1 text-right" numberOfLines={1}>
-            {destination}
-          </Text>
-        </View>
-
-        <View className="gap-1">
-          <View className="flex-row items-center gap-1.5">
-            <Clock size={14} color={colores.muted} />
-            <Text variant="muted">{formatWhen(trip.departureTime)}</Text>
-          </View>
-          <View className="flex-row items-center justify-between">
+          {item.role === "driver" ? (
             <View className="flex-row items-center gap-1.5">
               <Users size={14} color={colores.muted} />
-              <Text variant="muted">{formatSeats(trip.availableSeats)} libres</Text>
+              <Text variant="muted">{formatOccupancy(trip)}</Text>
             </View>
-            <Text className="font-sora-semibold text-primary">
-              {formatFare(trip.farePerPassenger)}
-            </Text>
-          </View>
+          ) : (
+            <View />
+          )}
+          <Text className="font-sora-semibold text-primary">
+            {formatFare(trip.farePerPassenger)}
+          </Text>
         </View>
       </Pressable>
 
@@ -73,6 +60,12 @@ export function MyTripCard({ item, onDecide, decidingId }: MyTripCardProps) {
       {item.role === "passenger" ? (
         <View className="gap-2">
           <Text variant="muted">Conductor: {trip.driver.name}</Text>
+          {item.vehicle ? (
+            <View className="flex-row items-center gap-1.5">
+              <Car size={14} color={colores.muted} />
+              <Text variant="muted">{formatVehicle(item.vehicle)}</Text>
+            </View>
+          ) : null}
           {item.driverPhone ? (
             <ContactButton phone={item.driverPhone} />
           ) : (
@@ -125,15 +118,5 @@ export function MyTripCard({ item, onDecide, decidingId }: MyTripCardProps) {
         </View>
       )}
     </Card>
-  );
-}
-
-function RoleBadge({ role }: { role: MyTripItem["role"] }) {
-  return (
-    <View className="self-start rounded-full bg-primary-tint px-2.5 py-0.5">
-      <Text className="font-sora-semibold text-xs text-primary">
-        {role === "driver" ? "Conductor" : "Pasajero"}
-      </Text>
-    </View>
   );
 }
