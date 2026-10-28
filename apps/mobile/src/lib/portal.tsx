@@ -39,11 +39,18 @@ async function writePortal(value: Portal): Promise<void> {
   await SecureStore.setItemAsync(STORAGE_KEY, value);
 }
 
-// Duraciones (ms) del cambio de portal: cubrir, mantener y descubrir.
+// Duraciones (ms) del cambio de portal: cubrir, mantener (mínimo) y descubrir.
 export const SWITCH_TIMING = {
-  full: { enter: 280, hold: 220, exit: 300 },
+  full: { enter: 420, hold: 260, exit: 340 },
   reduced: { enter: 150, hold: 0, exit: 150 },
 } as const;
+
+/** Resuelve después de que el frame siguiente ya se pintó. */
+function afterNextPaint(): Promise<void> {
+  return new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  );
+}
 
 function channels(hex: string): string {
   const n = parseInt(hex.slice(1), 16);
@@ -165,14 +172,19 @@ export function PortalProvider({ children }: { children: ReactNode }) {
     const timing = reduceMotion ? SWITCH_TIMING.reduced : SWITCH_TIMING.full;
     setSwitching(next);
     timers.current = [
-      setTimeout(() => applyPortal(next), timing.enter),
-      setTimeout(() => setSwitching(null), timing.enter + timing.hold),
-      setTimeout(
-        () => {
-          busy.current = false;
-        },
-        timing.enter + timing.hold + timing.exit,
-      ),
+      setTimeout(() => {
+        applyPortal(next);
+        // Se descubre solo cuando el portal nuevo ya pintó, para que la salida
+        // no compita con el montaje de la pantalla.
+        Promise.all([afterNextPaint(), new Promise((r) => setTimeout(r, timing.hold))]).then(() => {
+          setSwitching(null);
+          timers.current.push(
+            setTimeout(() => {
+              busy.current = false;
+            }, timing.exit),
+          );
+        });
+      }, timing.enter),
     ];
   }
 
