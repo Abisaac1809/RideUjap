@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
-import { Car, GraduationCap, LogOut, Mail, Phone, User } from "lucide-react-native";
+import { Car, GraduationCap, LogOut } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { Avatar, Button, Card, IconBadge, Text } from "../../src/components/ui";
+import { AccountCard } from "../../src/components/AccountCard";
+import { Avatar, Button, Text } from "../../src/components/ui";
 import { signOut, useSession } from "../../src/lib/auth-client";
 import { usePortal } from "../../src/lib/portal";
 import { colores } from "../../src/lib/tokens";
@@ -38,29 +39,7 @@ export default function PerfilScreen() {
           </View>
         </View>
 
-        {/* Datos de la cuenta. */}
-        <View className="gap-2">
-          <Text variant="label" className="px-1">
-            Datos de la cuenta
-          </Text>
-          <Card elevated className="gap-5">
-            <DatoPerfil
-              icono={<User size={18} color={colores.primary} />}
-              etiqueta="Nombre"
-              valor={user?.name}
-            />
-            <DatoPerfil
-              icono={<Mail size={18} color={colores.primary} />}
-              etiqueta="Correo"
-              valor={user?.email}
-            />
-            <DatoPerfil
-              icono={<Phone size={18} color={colores.primary} />}
-              etiqueta="Teléfono"
-              valor={user?.phone}
-            />
-          </Card>
-        </View>
+        <AccountCard />
 
         {isDriver ? (
           <Button
@@ -90,27 +69,5 @@ export default function PerfilScreen() {
         />
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function DatoPerfil({
-  icono,
-  etiqueta,
-  valor,
-}: {
-  icono: React.ReactNode;
-  etiqueta: string;
-  valor?: string | null;
-}) {
-  return (
-    <View className="flex-row items-center gap-3">
-      <IconBadge tone="primary" size="md">
-        {icono}
-      </IconBadge>
-      <View className="flex-1">
-        <Text variant="label">{etiqueta}</Text>
-        <Text>{valor ?? "—"}</Text>
-      </View>
-    </View>
   );
 }
