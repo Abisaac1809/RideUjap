@@ -19,14 +19,14 @@
     {
       "idx": 2,
       "version": "7",
-      "when": 1793216949832,
-      "tag": "0002_driver_profile_vehicle",
+      "when": 1793217074069,
+      "tag": "0002_volatile_vargas",
       "breakpoints": true
     },
     {
       "idx": 3,
       "version": "7",
-      "when": 1793216951804,
+      "when": 1793227811757,
       "tag": "0003_exchange_rate",
       "breakpoints": true
     }

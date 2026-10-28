@@ -8,6 +8,7 @@ import {
   pgEnum,
   pgTable,
   text,
+  time,
   timestamp,
   uniqueIndex,
   uuid,
@@ -108,6 +109,20 @@ export const exchangeRate = pgTable(
   (table) => [
     uniqueIndex("exchange_rate_currency_value_date_uidx").on(table.currency, table.valueDate),
   ],
+);
+
+export const schedules = pgTable(
+  "schedules",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    weekday: integer("weekday").notNull(),
+    startTime: time("start_time").notNull(),
+    endTime: time("end_time").notNull(),
+  },
+  (table) => [uniqueIndex("schedules_user_weekday_uidx").on(table.userId, table.weekday)],
 );
 
 export * from "./auth-schema";
