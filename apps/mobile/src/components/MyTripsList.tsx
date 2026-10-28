@@ -120,7 +120,7 @@ function needsAction(item: MyTripItem): boolean {
 /** Cada portal solo menciona lo que ofrece: el pasajero busca, el conductor publica. */
 const UPCOMING_EMPTY_COPY: Record<MyTripItem["role"] | "all", string> = {
   passenger: "No tienes reservas próximas.",
-  driver: "No tienes viajes publicados.",
+  driver: "No tienes próximos viajes publicados.",
   all: "No tienes viajes próximos. Publica uno o busca un cupo desde el inicio.",
 };
 
