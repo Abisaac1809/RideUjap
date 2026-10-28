@@ -59,7 +59,7 @@ export async function placesRoutes(app: FastifyInstance) {
     },
     async (request): Promise<PlaceSuggestion[]> => {
       if (!accessToken) {
-        throw httpError(500, "MAPBOX_ACCESS_TOKEN is not configured");
+        throw missingTokenError(app);
       }
 
       const params = new URLSearchParams({
@@ -109,7 +109,7 @@ export async function placesRoutes(app: FastifyInstance) {
     },
     async (request): Promise<PlaceDetails> => {
       if (!accessToken) {
-        throw httpError(500, "MAPBOX_ACCESS_TOKEN is not configured");
+        throw missingTokenError(app);
       }
 
       const params = new URLSearchParams({
@@ -129,7 +129,7 @@ export async function placesRoutes(app: FastifyInstance) {
       const feature = data.features?.[0];
       const coordinates = feature?.geometry?.coordinates;
       if (!feature || !coordinates) {
-        throw httpError(404, "Place not found");
+        throw httpError(404, "Lugar no encontrado");
       }
 
       const [lng, lat] = coordinates;
@@ -142,8 +142,13 @@ export async function placesRoutes(app: FastifyInstance) {
   );
 }
 
+function missingTokenError(app: FastifyInstance) {
+  app.log.error("MAPBOX_ACCESS_TOKEN is not configured");
+  return httpError(500, "El servicio de ubicaciones no está disponible");
+}
+
 function upstreamError(app: FastifyInstance, err: unknown, op: string) {
   app.log.error(err, `Mapbox ${op} failed`);
   const timedOut = err instanceof Error && err.name === "TimeoutError";
-  return httpError(timedOut ? 504 : 502, "Location service is unavailable");
+  return httpError(timedOut ? 504 : 502, "El servicio de ubicaciones no está disponible");
 }
