@@ -1,3 +1,14 @@
+export const moneyJsonSchema = {
+  type: "object",
+  required: ["usd", "ves", "rateDate", "stale"],
+  properties: {
+    usd: { type: "number" },
+    ves: { type: ["number", "null"] },
+    rateDate: { type: ["string", "null"] },
+    stale: { type: "boolean" },
+  },
+};
+
 /** Schema de respuesta de un viaje, reutilizado por las rutas que lo devuelven. */
 export const tripJsonSchema = {
   type: "object",
@@ -25,7 +36,7 @@ export const tripJsonSchema = {
     availableSeats: { type: "integer" },
     totalSeats: { type: "integer" },
     admissionMode: { type: "string", enum: ["auto", "request"] },
-    farePerPassenger: { type: ["number", "null"] },
+    farePerPassenger: { anyOf: [moneyJsonSchema, { type: "null" }] },
     status: { type: "string", enum: ["active", "completed", "cancelled"] },
     driver: {
       type: "object",
@@ -69,7 +80,7 @@ export const fareEstimateSchema = {
     200: {
       type: "object",
       required: ["suggestedFare"],
-      properties: { suggestedFare: { type: "number" } },
+      properties: { suggestedFare: moneyJsonSchema },
     },
   },
 };

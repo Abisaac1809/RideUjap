@@ -11,6 +11,7 @@ import type {
 import { requireAuth } from "../auth/require-auth";
 import { requireDriver } from "../driver/require-driver";
 import { effectiveSeats } from "../driver/rules";
+import { exchangeRateService } from "../exchange-rate/index";
 import { db } from "../../db/index";
 import { trips, user } from "../../db/schema";
 import { httpError } from "../../lib/http-error";
@@ -73,7 +74,8 @@ export async function tripRoutes(app: FastifyInstance) {
         .where(and(...conditions))
         .orderBy(distance ? asc(distance) : asc(trips.departureTime));
 
-      return rows.map(toDto);
+      const toMoney = await exchangeRateService.getConverter();
+      return rows.map((row) => toDto(row, toMoney));
     },
   );
 
@@ -82,7 +84,8 @@ export async function tripRoutes(app: FastifyInstance) {
     { preHandler: requireAuth, schema: fareEstimateSchema },
     async (request): Promise<FareEstimateResponse> => {
       const { lat, lng, seats } = request.query;
-      return { suggestedFare: computeSuggestedFare({ lat, lng, seats }) };
+      const fare = computeSuggestedFare({ lat, lng, seats });
+      return { suggestedFare: await exchangeRateService.toMoney(fare) };
     },
   );
 
@@ -123,12 +126,9 @@ export async function tripRoutes(app: FastifyInstance) {
         throw httpError(500, "Failed to create trip");
       }
 
+      const toMoney = await exchangeRateService.getConverter();
       reply.code(201);
-      return toDto({
-        ...row,
-        driverName: driver.name,
-        driverImage: driver.image ?? null,
-      });
+      return toDto({ ...row, driverName: driver.name, driverImage: driver.image ?? null }, toMoney);
     },
   );
 }
