@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, type Ref } from "react";
 import { TextInput, View, type TextInputProps } from "react-native";
 
 import { cn } from "../../lib/cn";
@@ -11,6 +11,7 @@ export interface InputProps extends TextInputProps {
   helperText?: string;
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
+  ref?: Ref<TextInput>;
 }
 
 /**
@@ -26,6 +27,7 @@ export function Input({
   className,
   onFocus,
   onBlur,
+  ref,
   ...rest
 }: InputProps) {
   const [focused, setFocused] = useState(false);
@@ -46,6 +48,7 @@ export function Input({
       >
         {leftIcon ? <View>{leftIcon}</View> : null}
         <TextInput
+          ref={ref}
           editable={editable}
           placeholderTextColor={colores.muted}
           className={cn("flex-1 text-base text-ink web:outline-none", className)}

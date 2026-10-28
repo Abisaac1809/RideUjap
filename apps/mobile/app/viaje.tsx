@@ -1,15 +1,7 @@
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import {
-  ArrowRight,
-  CheckCircle2,
-  Clock,
-  MapPin,
-  TriangleAlert,
-  Users,
-  X,
-} from "lucide-react-native";
+import { Car, CheckCircle2, Info, TriangleAlert, Users, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type {
   AdmissionMode,
@@ -18,14 +10,17 @@ import type {
   ReservationResponse,
   ReservationStatus,
   Trip,
+  VehiclePublic,
 } from "@rideujap/shared";
 
 import { ContactButton, StatusBadge } from "../src/components/StatusBadge";
+import { TripRoute } from "../src/components/TripRoute";
 import { Button, Card, Text } from "../src/components/ui";
 import { ApiError, createReservation } from "../src/lib/api";
 import { useSession } from "../src/lib/auth-client";
 import { useDismiss } from "../src/lib/useDismiss";
-import { formatFare, formatWhen } from "../src/lib/format";
+import { formatFare, formatSeats, formatWhen } from "../src/lib/format";
+import { describeTrip, formatOccupancy, formatVehicle } from "../src/lib/trip-view";
 import { colores } from "../src/lib/tokens";
 
 type DetailParam =
@@ -109,7 +104,21 @@ export default function ViajeScreen() {
           contentContainerClassName="gap-6 px-5 pb-8 pt-4"
           keyboardShouldPersistTaps="handled"
         >
-          <TripSummary trip={parsed.mode === "reserve" ? parsed.trip : parsed.item.trip} />
+          {parsed.mode === "reserve" ? (
+            <TripSummary
+              trip={parsed.trip}
+              viewer="passenger"
+              seats={`${formatSeats(parsed.trip.availableSeats)} libres`}
+            />
+          ) : parsed.mode === "passenger" ? (
+            <TripSummary trip={parsed.item.trip} viewer="passenger" />
+          ) : (
+            <TripSummary
+              trip={parsed.item.trip}
+              viewer="driver"
+              seats={formatOccupancy(parsed.item.trip)}
+            />
+          )}
 
           {parsed.mode === "reserve" ? (
             <ReserveSection
@@ -130,40 +139,20 @@ export default function ViajeScreen() {
   );
 }
 
-function TripSummary({ trip }: { trip: Trip }) {
-  const [origin, destination] =
-    trip.direction === "outbound" ? ["UJAP", trip.pointText] : [trip.pointText, "UJAP"];
-
+function TripSummary({
+  trip,
+  viewer,
+  seats,
+}: {
+  trip: Trip;
+  viewer: "driver" | "passenger";
+  seats?: string;
+}) {
   return (
     <Card className="gap-4">
-      <View className="flex-row items-center gap-2">
-        <Text variant="subtitle" className="flex-1" numberOfLines={1}>
-          {origin}
-        </Text>
-        <ArrowRight size={16} color={colores.muted} />
-        <Text variant="subtitle" className="flex-1 text-right" numberOfLines={1}>
-          {destination}
-        </Text>
-      </View>
+      <TripRoute trip={trip} viewer={viewer} />
 
-      <View className="gap-2">
-        <Row
-          icon={<Clock size={16} color={colores.muted} />}
-          text={formatWhen(trip.departureTime)}
-        />
-        <Row
-          icon={<MapPin size={16} color={colores.muted} />}
-          text={
-            trip.direction === "outbound"
-              ? `Destino: ${trip.pointText}`
-              : `Punto de encuentro: ${trip.pointText}`
-          }
-        />
-        <Row
-          icon={<Users size={16} color={colores.muted} />}
-          text={`${trip.availableSeats} de ${trip.totalSeats} cupos libres`}
-        />
-      </View>
+      {seats ? <Row icon={<Users size={16} color={colores.muted} />} text={seats} /> : null}
 
       <View className="flex-row items-center justify-between border-t border-line pt-3">
         <Text variant="muted">Aporte por pasajero</Text>
@@ -195,6 +184,10 @@ function DriverInfo({ name }: { name: string }) {
   );
 }
 
+function VehicleRow({ vehicle }: { vehicle: VehiclePublic }) {
+  return <Row icon={<Car size={16} color={colores.muted} />} text={formatVehicle(vehicle)} />;
+}
+
 function ReserveSection({
   trip,
   state,
@@ -220,9 +213,10 @@ function ReserveSection({
         </View>
         <Text variant="muted">
           {enrolled
-            ? "Coordina el punto de encuentro con el conductor por WhatsApp."
+            ? `${describeTrip(trip, "passenger").start}, ${formatWhen(trip.departureTime)}. Si necesitas coordinar algo, escríbele al conductor.`
             : "El conductor revisará tu solicitud. Te avisaremos cuando responda."}
         </Text>
+        {state.result.vehicle ? <VehicleRow vehicle={state.result.vehicle} /> : null}
         {enrolled && state.result.contactPhone ? (
           <ContactButton phone={state.result.contactPhone} />
         ) : null}
@@ -236,7 +230,7 @@ function ReserveSection({
       <DriverInfo name={trip.driver.name} />
 
       <View className="flex-row items-center gap-2 rounded-control bg-surface px-3 py-2">
-        <TriangleAlert size={16} color={colores.muted} />
+        <Info size={16} color={colores.muted} />
         <Text variant="muted" className="flex-1 text-xs">
           {ADMISSION_COPY[trip.admissionMode]}
         </Text>
@@ -274,6 +268,8 @@ function PassengerSection({ item }: { item: MyPassengerTrip }) {
         <DriverInfo name={item.trip.driver.name} />
         <StatusBadge status={item.reservation.status} />
       </View>
+
+      {item.vehicle ? <VehicleRow vehicle={item.vehicle} /> : null}
 
       {item.driverPhone ? (
         <ContactButton phone={item.driverPhone} />

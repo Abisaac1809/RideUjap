@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { Trip, TripDirection } from "@rideujap/shared";
 
 import { Logo } from "../../src/components/Logo";
-import { DIRECTION_COPY, RouteHint } from "../../src/components/RouteHint";
+import { DIRECTION_COPY, DIRECTION_OPTIONS, RouteHint } from "../../src/components/RouteHint";
 import { TripCard } from "../../src/components/TripCard";
 import {
   Button,
@@ -61,19 +61,12 @@ export default function InicioScreen() {
         </View>
 
         <Card elevated className="gap-4">
-          <Segmented
-            value={direction}
-            onChange={setDirection}
-            options={[
-              { value: "inbound", label: "Ida" },
-              { value: "outbound", label: "Vuelta" },
-            ]}
-          />
+          <Segmented value={direction} onChange={setDirection} options={DIRECTION_OPTIONS} />
 
-          <RouteHint direction={direction} place={place} />
+          <RouteHint direction={direction} place={place} viewer="passenger" />
 
           <Input
-            label={DIRECTION_COPY[direction].inputLabel}
+            label={DIRECTION_COPY.passenger[direction].inputLabel}
             placeholder="Ej. San Diego, Naguanagua…"
             value={place}
             onChangeText={setPlace}

@@ -11,13 +11,15 @@ import {
   type TripDirection,
 } from "@rideujap/shared";
 
-import { DIRECTION_COPY, RouteHint } from "../src/components/RouteHint";
+import { DIRECTION_COPY, DIRECTION_OPTIONS, RouteHint } from "../src/components/RouteHint";
 import { PlacePicker } from "../src/components/PlacePicker";
 import { Button, Card, Input, Segmented, Stepper, Text } from "../src/components/ui";
 import { ApiError, createTrip, estimateFare } from "../src/lib/api";
 import { usePortal } from "../src/lib/portal";
 import { useDismiss } from "../src/lib/useDismiss";
 import { formatBs, formatFare } from "../src/lib/format";
+import { maskTime, nextFullHour, parseTime, type FieldErrors } from "../src/lib/form";
+import { notify } from "../src/lib/notify";
 import { colores } from "../src/lib/tokens";
 
 const ADMISSION_COPY: Record<AdmissionMode, string> = {
@@ -59,14 +61,9 @@ function buildDays(): Day[] {
   });
 }
 
-function parseTime(value: string): { h: number; m: number } | null {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
-  if (!match) return null;
-  const h = Number(match[1]);
-  const m = Number(match[2]);
-  if (h > 23 || m > 59) return null;
-  return { h, m };
-}
+const QUICK_TIMES = ["06:00", "07:00", "08:00", "12:00", "15:00", "17:00"];
+
+type Field = "place" | "time" | "fare";
 
 type Status = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
@@ -75,18 +72,27 @@ export default function PublicarScreen() {
   const dismiss = useDismiss();
   const { isDriver, driverStatus } = usePortal();
   const [days] = useState(buildDays);
+  const [initial] = useState(() => nextFullHour(new Date()));
 
   const maxSeats = driverStatus?.vehicle?.seats ?? MAX_SEATS;
 
   const [direction, setDirection] = useState<TripDirection>("inbound");
   const [place, setPlace] = useState<PlaceDetails | null>(null);
-  const [dayIndex, setDayIndex] = useState(0);
-  const [time, setTime] = useState("07:00");
+  const [dayIndex, setDayIndex] = useState(initial.dayOffset);
+  const [time, setTime] = useState(initial.time);
   const [seats, setSeats] = useState(() => Math.min(3, driverStatus?.vehicle?.seats ?? 3));
   const [admission, setAdmission] = useState<AdmissionMode>("request");
   const [fare, setFare] = useState("");
   const [suggested, setSuggested] = useState<Money | null>(null);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [errors, setErrors] = useState<FieldErrors<Field>>({});
+
+  function clearError(field: Field) {
+    setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
+  }
+
+  const nowTime = new Date().toTimeString().slice(0, 5);
+  const quickTimes = dayIndex === 0 ? QUICK_TIMES.filter((value) => value > nowTime) : QUICK_TIMES;
 
   useEffect(() => {
     if (!place) {
@@ -121,24 +127,21 @@ export default function PublicarScreen() {
   }
 
   async function onSubmit() {
-    if (!place) {
-      setStatus({ kind: "error", message: "Selecciona el lugar de encuentro." });
-      return;
-    }
+    const next: FieldErrors<Field> = {};
+    if (!place) next.place = "Selecciona el lugar en la lista.";
 
     const departure = departureFromForm();
-    if (!departure) {
-      setStatus({ kind: "error", message: "Escribe la hora en formato 24h, ej. 07:30." });
-      return;
-    }
-    if (departure.getTime() <= Date.now()) {
-      setStatus({ kind: "error", message: "La hora de salida debe ser futura." });
-      return;
-    }
+    if (!departure) next.time = "Escribe la hora en formato 24h, ej. 07:30.";
+    else if (departure.getTime() <= Date.now()) next.time = "La hora de salida debe ser futura.";
 
     const fareNum = parseFare(fare);
     if (fareNum === null) {
-      setStatus({ kind: "error", message: "Indica un aporte válido (0 o más)." });
+      next.fare = "Indica un aporte válido (0 o más).";
+    }
+
+    setErrors(next);
+    if (!place || !departure || fareNum === null || Object.keys(next).length > 0) {
+      setStatus({ kind: "idle" });
       return;
     }
 
@@ -155,6 +158,7 @@ export default function PublicarScreen() {
         fare: fareNum,
       });
       router.replace("/(driver)/viajes");
+      notify("Viaje publicado", "Los pasajeros ya pueden encontrarlo y reservar un cupo.");
     } catch (error) {
       const message = error instanceof ApiError ? error.message : "No pudimos publicar el viaje.";
       setStatus({ kind: "error", message });
@@ -202,21 +206,18 @@ export default function PublicarScreen() {
           </View>
 
           <View className="gap-3">
-            <Segmented
-              value={direction}
-              onChange={setDirection}
-              options={[
-                { value: "inbound", label: "Ida" },
-                { value: "outbound", label: "Vuelta" },
-              ]}
-            />
-            <RouteHint direction={direction} place={place?.text ?? ""} />
+            <Segmented value={direction} onChange={setDirection} options={DIRECTION_OPTIONS} />
+            <RouteHint direction={direction} place={place?.text ?? ""} viewer="driver" />
           </View>
 
           <PlacePicker
-            label={DIRECTION_COPY[direction].inputLabel}
+            label={DIRECTION_COPY.driver[direction].inputLabel}
             value={place}
-            onChange={setPlace}
+            onChange={(next) => {
+              setPlace(next);
+              clearError("place");
+            }}
+            error={errors.place}
           />
 
           <View className="gap-2">
@@ -233,7 +234,10 @@ export default function PublicarScreen() {
                     key={day.date.toISOString()}
                     accessibilityRole="button"
                     accessibilityState={{ selected: active }}
-                    onPress={() => setDayIndex(index)}
+                    onPress={() => {
+                      setDayIndex(index);
+                      clearError("time");
+                    }}
                     className={
                       active
                         ? "rounded-control bg-primary px-4 py-2"
@@ -247,14 +251,45 @@ export default function PublicarScreen() {
                 );
               })}
             </ScrollView>
+            <Text variant="label">Hora de salida</Text>
+            {quickTimes.length > 0 ? (
+              <View className="flex-row flex-wrap gap-2">
+                {quickTimes.map((value) => {
+                  const active = value === time;
+                  return (
+                    <Pressable
+                      key={value}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                      onPress={() => {
+                        setTime(value);
+                        clearError("time");
+                      }}
+                      className={
+                        active
+                          ? "rounded-control bg-primary px-3 py-1.5"
+                          : "rounded-control border border-line bg-surface px-3 py-1.5"
+                      }
+                    >
+                      <Text className={active ? "font-sora-semibold text-primary-ink" : "text-ink"}>
+                        {value}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
             <Input
-              label="Hora de salida"
               placeholder="07:30"
               value={time}
-              onChangeText={setTime}
-              keyboardType="numbers-and-punctuation"
+              onChangeText={(text) => {
+                setTime(maskTime(text));
+                clearError("time");
+              }}
+              keyboardType="number-pad"
               maxLength={5}
-              helperText="Formato 24h."
+              error={errors.time}
+              helperText="Formato 24h, ej. 07:30."
             />
           </View>
 
@@ -286,7 +321,11 @@ export default function PublicarScreen() {
             <Input
               placeholder="0,00"
               value={fare}
-              onChangeText={setFare}
+              onChangeText={(text) => {
+                setFare(text);
+                clearError("fare");
+              }}
+              error={errors.fare}
               keyboardType="decimal-pad"
               leftIcon={<Coins size={18} color={colores.muted} />}
             />
@@ -298,7 +337,10 @@ export default function PublicarScreen() {
             {suggested !== null ? (
               <Pressable
                 accessibilityRole="button"
-                onPress={() => setFare(String(suggested.usd))}
+                onPress={() => {
+                  setFare(String(suggested.usd));
+                  clearError("fare");
+                }}
                 className="flex-row items-center justify-between rounded-control bg-primary/10 px-3 py-2"
               >
                 <Text className="text-primary">Sugerido: {formatFare(suggested)}</Text>

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { useRef, useState } from "react";
+import { Pressable, ScrollView, View, type TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { TriangleAlert, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,11 +7,12 @@ import { MAX_SEATS, MAX_VEHICLE_YEAR, MIN_VEHICLE_YEAR } from "@rideujap/shared"
 
 import { Button, Card, Input, Stepper, Text } from "../../src/components/ui";
 import { ApiError, createDriverProfile } from "../../src/lib/api";
+import { maskDate, validateFutureDate, type FieldErrors } from "../../src/lib/form";
 import { usePortal } from "../../src/lib/portal";
 import { useDismiss } from "../../src/lib/useDismiss";
 import { colores } from "../../src/lib/tokens";
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+type Field = "licenseNumber" | "licenseExpiry" | "make" | "model" | "year" | "color" | "plate";
 
 type Status = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
@@ -29,23 +30,39 @@ export default function DriverOnboardingScreen() {
   const [plate, setPlate] = useState("");
   const [seats, setSeats] = useState(4);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [errors, setErrors] = useState<FieldErrors<Field>>({});
+
+  const expiryRef = useRef<TextInput>(null);
+  const makeRef = useRef<TextInput>(null);
+  const modelRef = useRef<TextInput>(null);
+  const yearRef = useRef<TextInput>(null);
+  const colorRef = useRef<TextInput>(null);
+  const plateRef = useRef<TextInput>(null);
+
+  function update(field: Field, setter: (value: string) => void) {
+    return (value: string) => {
+      setter(value);
+      setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
+    };
+  }
 
   async function onSubmit() {
-    if (!licenseNumber.trim()) {
-      setStatus({ kind: "error", message: "Escribe tu número de licencia." });
-      return;
-    }
-    if (!DATE_RE.test(licenseExpiry.trim())) {
-      setStatus({ kind: "error", message: "La fecha de vencimiento debe ser AAAA-MM-DD." });
-      return;
-    }
+    const next: FieldErrors<Field> = {};
+    if (!licenseNumber.trim()) next.licenseNumber = "Escribe tu número de licencia.";
+    const expiry = validateFutureDate(licenseExpiry);
+    if (!expiry.ok) next.licenseExpiry = expiry.error;
+    if (!make.trim()) next.make = "Indica la marca.";
+    if (!model.trim()) next.model = "Indica el modelo.";
     const yearNum = Number(year);
-    if (!make.trim() || !model.trim() || !color.trim() || !plate.trim()) {
-      setStatus({ kind: "error", message: "Completa todos los datos del vehículo." });
-      return;
-    }
     if (!Number.isInteger(yearNum) || yearNum < MIN_VEHICLE_YEAR || yearNum > MAX_VEHICLE_YEAR) {
-      setStatus({ kind: "error", message: "Indica un año de vehículo válido." });
+      next.year = "Indica un año válido.";
+    }
+    if (!color.trim()) next.color = "Indica el color.";
+    if (!plate.trim()) next.plate = "Indica la placa.";
+
+    setErrors(next);
+    if (!expiry.ok || Object.keys(next).length > 0) {
+      setStatus({ kind: "idle" });
       return;
     }
 
@@ -53,7 +70,7 @@ export default function DriverOnboardingScreen() {
     try {
       await createDriverProfile({
         licenseNumber: licenseNumber.trim(),
-        licenseExpiry: licenseExpiry.trim(),
+        licenseExpiry: expiry.iso,
         vehicle: {
           make: make.trim(),
           model: model.trim(),
@@ -106,38 +123,94 @@ export default function DriverOnboardingScreen() {
             label="Número de licencia"
             placeholder="V-12345678"
             value={licenseNumber}
-            onChangeText={setLicenseNumber}
+            onChangeText={update("licenseNumber", setLicenseNumber)}
+            error={errors.licenseNumber}
             autoCapitalize="characters"
+            autoComplete="off"
+            autoCorrect={false}
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => expiryRef.current?.focus()}
           />
           <Input
+            ref={expiryRef}
             label="Vencimiento"
-            placeholder="AAAA-MM-DD"
+            placeholder="DD/MM/AAAA"
             value={licenseExpiry}
-            onChangeText={setLicenseExpiry}
-            keyboardType="numbers-and-punctuation"
-            helperText="Formato AAAA-MM-DD."
+            onChangeText={update("licenseExpiry", (text) => setLicenseExpiry(maskDate(text)))}
+            error={errors.licenseExpiry}
+            keyboardType="number-pad"
+            maxLength={10}
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => makeRef.current?.focus()}
           />
         </View>
 
         <View className="gap-3">
           <Text variant="label">Vehículo</Text>
-          <Input label="Marca" placeholder="Toyota" value={make} onChangeText={setMake} />
-          <Input label="Modelo" placeholder="Corolla" value={model} onChangeText={setModel} />
           <Input
+            ref={makeRef}
+            label="Marca"
+            placeholder="Toyota"
+            value={make}
+            onChangeText={update("make", setMake)}
+            error={errors.make}
+            autoCapitalize="words"
+            autoComplete="off"
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => modelRef.current?.focus()}
+          />
+          <Input
+            ref={modelRef}
+            label="Modelo"
+            placeholder="Corolla"
+            value={model}
+            onChangeText={update("model", setModel)}
+            error={errors.model}
+            autoCapitalize="words"
+            autoComplete="off"
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => yearRef.current?.focus()}
+          />
+          <Input
+            ref={yearRef}
             label="Año"
             placeholder="2019"
             value={year}
-            onChangeText={setYear}
+            onChangeText={update("year", setYear)}
+            error={errors.year}
             keyboardType="number-pad"
             maxLength={4}
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => colorRef.current?.focus()}
           />
-          <Input label="Color" placeholder="Blanco" value={color} onChangeText={setColor} />
           <Input
+            ref={colorRef}
+            label="Color"
+            placeholder="Blanco"
+            value={color}
+            onChangeText={update("color", setColor)}
+            error={errors.color}
+            autoComplete="off"
+            returnKeyType="next"
+            submitBehavior="submit"
+            onSubmitEditing={() => plateRef.current?.focus()}
+          />
+          <Input
+            ref={plateRef}
             label="Placa"
             placeholder="AB123CD"
             value={plate}
-            onChangeText={setPlate}
+            onChangeText={update("plate", setPlate)}
+            error={errors.plate}
             autoCapitalize="characters"
+            autoComplete="off"
+            autoCorrect={false}
+            returnKeyType="done"
           />
           <View className="gap-2">
             <Text variant="label">Cupos del vehículo</Text>
@@ -155,7 +228,7 @@ export default function DriverOnboardingScreen() {
         ) : null}
 
         <Button
-          label="Guardar y publicar"
+          label="Guardar y continuar"
           fullWidth
           loading={status.kind === "loading"}
           onPress={onSubmit}

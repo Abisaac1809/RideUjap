@@ -13,10 +13,9 @@ import { AccountCard, DatoPerfil } from "../../src/components/AccountCard";
 import { Avatar, Button, Card, Input, Stepper, Text } from "../../src/components/ui";
 import { ApiError, updateDriverProfile } from "../../src/lib/api";
 import { signOut, useSession } from "../../src/lib/auth-client";
+import { isoToDisplayDate, maskDate, validateFutureDate } from "../../src/lib/form";
 import { usePortal } from "../../src/lib/portal";
 import { colores } from "../../src/lib/tokens";
-
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 type EditStatus = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
@@ -76,7 +75,7 @@ function VehicleSection({
     driverStatus?.driverProfile?.licenseNumber ?? "",
   );
   const [licenseExpiry, setLicenseExpiry] = useState(
-    driverStatus?.driverProfile?.licenseExpiry ?? "",
+    isoToDisplayDate(driverStatus?.driverProfile?.licenseExpiry ?? ""),
   );
   const [make, setMake] = useState(driverStatus?.vehicle?.make ?? "");
   const [model, setModel] = useState(driverStatus?.vehicle?.model ?? "");
@@ -85,13 +84,14 @@ function VehicleSection({
   const [plate, setPlate] = useState(driverStatus?.vehicle?.plate ?? "");
   const [seats, setSeats] = useState(driverStatus?.vehicle?.seats ?? 4);
   const [status, setStatus] = useState<EditStatus>({ kind: "idle" });
+  const [errors, setErrors] = useState<{ licenseExpiry?: string; year?: string }>({});
 
   if (!driverStatus?.driverProfile || !driverStatus.vehicle) return null;
   const { driverProfile, vehicle } = driverStatus;
 
   function toggle() {
     setLicenseNumber(driverProfile.licenseNumber);
-    setLicenseExpiry(driverProfile.licenseExpiry);
+    setLicenseExpiry(isoToDisplayDate(driverProfile.licenseExpiry));
     setMake(vehicle.make);
     setModel(vehicle.model);
     setYear(String(vehicle.year));
@@ -99,6 +99,7 @@ function VehicleSection({
     setPlate(vehicle.plate);
     setSeats(vehicle.seats);
     setStatus({ kind: "idle" });
+    setErrors({});
     setEditing((v) => !v);
   }
 
@@ -107,17 +108,20 @@ function VehicleSection({
       setStatus({ kind: "error", message: "Escribe tu número de licencia." });
       return;
     }
-    if (!DATE_RE.test(licenseExpiry.trim())) {
-      setStatus({ kind: "error", message: "La fecha de vencimiento debe ser AAAA-MM-DD." });
-      return;
-    }
     if (!make.trim() || !model.trim() || !color.trim() || !plate.trim()) {
       setStatus({ kind: "error", message: "Completa todos los datos del vehículo." });
       return;
     }
+    const expiry = validateFutureDate(licenseExpiry);
     const yearNum = Number(year);
-    if (!Number.isInteger(yearNum) || yearNum < MIN_VEHICLE_YEAR || yearNum > MAX_VEHICLE_YEAR) {
-      setStatus({ kind: "error", message: "Indica un año de vehículo válido." });
+    const yearValid =
+      Number.isInteger(yearNum) && yearNum >= MIN_VEHICLE_YEAR && yearNum <= MAX_VEHICLE_YEAR;
+    setErrors({
+      licenseExpiry: expiry.ok ? undefined : expiry.error,
+      year: yearValid ? undefined : "Indica un año válido.",
+    });
+    if (!expiry.ok || !yearValid) {
+      setStatus({ kind: "idle" });
       return;
     }
 
@@ -125,7 +129,7 @@ function VehicleSection({
     try {
       await updateDriverProfile({
         licenseNumber: licenseNumber.trim(),
-        licenseExpiry: licenseExpiry.trim(),
+        licenseExpiry: expiry.iso,
         vehicle: {
           make: make.trim(),
           model: model.trim(),
@@ -167,18 +171,28 @@ function VehicleSection({
             />
             <Input
               label="Vencimiento"
+              placeholder="DD/MM/AAAA"
               value={licenseExpiry}
-              onChangeText={setLicenseExpiry}
-              helperText="Formato AAAA-MM-DD."
+              onChangeText={(text) => {
+                setLicenseExpiry(maskDate(text));
+                setErrors((prev) => ({ ...prev, licenseExpiry: undefined }));
+              }}
+              keyboardType="number-pad"
+              maxLength={10}
+              error={errors.licenseExpiry}
             />
             <Input label="Marca" value={make} onChangeText={setMake} />
             <Input label="Modelo" value={model} onChangeText={setModel} />
             <Input
               label="Año"
               value={year}
-              onChangeText={setYear}
+              onChangeText={(text) => {
+                setYear(text);
+                setErrors((prev) => ({ ...prev, year: undefined }));
+              }}
               keyboardType="number-pad"
               maxLength={4}
+              error={errors.year}
             />
             <Input label="Color" value={color} onChangeText={setColor} />
             <Input
