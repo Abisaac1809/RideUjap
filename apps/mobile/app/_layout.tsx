@@ -15,7 +15,8 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useSession } from "../src/lib/auth-client";
-import { PortalProvider, usePortal } from "../src/lib/portal";
+import { PortalSwitchOverlay } from "../src/components/PortalSwitchOverlay";
+import { PortalProvider, portalThemeVars, usePortal } from "../src/lib/portal";
 import { colores } from "../src/lib/tokens";
 
 // Mantener el splash hasta que las fuentes carguen, para evitar el "flash" de
@@ -57,26 +58,31 @@ export default function RootLayout() {
 
 /**
  * El grupo del portal resuelto se declara primero, así que el navegador lo
- * usa como pantalla inicial sin necesitar `initialRouteName` dinámico.
+ * usa como pantalla inicial sin necesitar `initialRouteName` dinámico. El
+ * contenedor aplica las variables de color del portal a toda la app.
  */
 function RootNavigator() {
   const { data: session } = useSession();
   const { portal } = usePortal();
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Protected guard={!!session}>
-        {(portal === "driver" ? ["(driver)", "(passenger)"] : ["(passenger)", "(driver)"]).map(
-          (name) => (
-            <Stack.Screen key={name} name={name} />
-          ),
-        )}
-        <Stack.Screen name="publicar" options={{ presentation: "modal" }} />
-        <Stack.Screen name="viaje" options={{ presentation: "modal" }} />
-      </Stack.Protected>
-      <Stack.Protected guard={!session}>
-        <Stack.Screen name="(auth)" />
-      </Stack.Protected>
-    </Stack>
+    // Sin sesión (auth) siempre se usa la paleta de pasajero.
+    <View className="flex-1" style={portalThemeVars[session ? portal : "passenger"]}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Protected guard={!!session}>
+          {(portal === "driver" ? ["(driver)", "(passenger)"] : ["(passenger)", "(driver)"]).map(
+            (name) => (
+              <Stack.Screen key={name} name={name} />
+            ),
+          )}
+          <Stack.Screen name="publicar" options={{ presentation: "modal" }} />
+          <Stack.Screen name="viaje" options={{ presentation: "modal" }} />
+        </Stack.Protected>
+        <Stack.Protected guard={!session}>
+          <Stack.Screen name="(auth)" />
+        </Stack.Protected>
+      </Stack>
+      <PortalSwitchOverlay />
+    </View>
   );
 }

@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Valores por defecto (portal pasajero) de la familia primary, como canales RGB. */
+:root {
+  --color-primary: 13 122 111;
+  --color-primary-dark: 10 95 86;
+  --color-primary-tint: 230 244 242;
+  --color-primary-ink: 255 255 255;
+}

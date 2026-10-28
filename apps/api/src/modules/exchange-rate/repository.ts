@@ -1,9 +1,9 @@
 import type { Currency } from "@rideujap/shared";
-import { inArray, lte, max, sql } from "drizzle-orm";
+import { eq, lte, max, sql } from "drizzle-orm";
 
 import { db } from "../../db/index";
 import { exchangeRate } from "../../db/schema";
-import type { BcvRates } from "./rules";
+import { effectiveValueDate, type BcvRates } from "./rules";
 
 export async function upsertRates({ valueDate, rates }: BcvRates): Promise<void> {
   const fetchedAt = new Date();
@@ -21,12 +21,21 @@ export async function upsertRates({ valueDate, rates }: BcvRates): Promise<void>
   });
 }
 
-/** Tasas de la Fecha Valor más reciente que no sea posterior a `today`. */
+/** Tasas de la Fecha Valor vigente hoy (ver `effectiveValueDate`). */
 export async function findEffectiveRates(today: string): Promise<BcvRates | null> {
-  const latest = db
-    .select({ valueDate: max(exchangeRate.valueDate) })
+  const [candidates] = await db
+    .select({
+      latestPast: max(exchangeRate.valueDate),
+      earliestFuture: sql<string | null>`(
+        select min(${exchangeRate.valueDate}) from ${exchangeRate}
+        where ${exchangeRate.valueDate} > ${today}
+      )`,
+    })
     .from(exchangeRate)
     .where(lte(exchangeRate.valueDate, today));
+
+  const valueDate = candidates ? effectiveValueDate(candidates) : null;
+  if (!valueDate) return null;
 
   const rows = await db
     .select({
@@ -35,7 +44,7 @@ export async function findEffectiveRates(today: string): Promise<BcvRates | null
       rate: exchangeRate.rate,
     })
     .from(exchangeRate)
-    .where(inArray(exchangeRate.valueDate, latest));
+    .where(eq(exchangeRate.valueDate, valueDate));
 
   const usd = rows.find((row) => row.currency === "USD");
   const eur = rows.find((row) => row.currency === "EUR");

@@ -1,12 +1,22 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { ActivityIndicator, Platform, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { vars } from "nativewind";
+import { useReducedMotion } from "react-native-reanimated";
 import type { DriverStatusResponse } from "@rideujap/shared";
 
 import { getDriverProfile } from "./api";
 import { useSession } from "./auth-client";
-import { colores } from "./tokens";
+import { colores, portalPalettes, type PortalPalette } from "./tokens";
 
 export type Portal = "passenger" | "driver";
 
@@ -29,8 +39,43 @@ async function writePortal(value: Portal): Promise<void> {
   await SecureStore.setItemAsync(STORAGE_KEY, value);
 }
 
+// Duraciones (ms) del cambio de portal: cubrir, mantener (mínimo) y descubrir.
+export const SWITCH_TIMING = {
+  full: { enter: 420, hold: 260, exit: 340 },
+  reduced: { enter: 150, hold: 0, exit: 150 },
+} as const;
+
+/** Resuelve después de que el frame siguiente ya se pintó. */
+function afterNextPaint(): Promise<void> {
+  return new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+  );
+}
+
+function channels(hex: string): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`;
+}
+
+function themeVars(palette: PortalPalette) {
+  return vars({
+    "--color-primary": channels(palette.primary),
+    "--color-primary-dark": channels(palette.primaryDark),
+    "--color-primary-tint": channels(palette.primaryTint),
+    "--color-primary-ink": channels(palette.primaryInk),
+  });
+}
+
+/** Variables CSS de la familia `primary` para cada portal. */
+export const portalThemeVars: Record<Portal, ReturnType<typeof vars>> = {
+  passenger: themeVars(portalPalettes.passenger),
+  driver: themeVars(portalPalettes.driver),
+};
+
 interface PortalContextValue {
   portal: Portal;
+  /** Portal destino mientras corre la transición de cambio; `null` si no hay. */
+  switching: Portal | null;
   isDriver: boolean;
   driverStatus: DriverStatusResponse | null;
   setPortal: (portal: Portal) => void;
@@ -54,6 +99,12 @@ export function PortalProvider({ children }: { children: ReactNode }) {
   const [portal, setPortalState] = useState<Portal>("passenger");
   const [driverStatus, setDriverStatus] = useState<DriverStatusResponse | null>(null);
   const [ready, setReady] = useState(false);
+  const [switching, setSwitching] = useState<Portal | null>(null);
+  const busy = useRef(false);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   const isDriver = driverStatus?.driverProfile !== null && driverStatus !== null;
 
@@ -103,10 +154,38 @@ export function PortalProvider({ children }: { children: ReactNode }) {
     };
   }, [session, isPending]);
 
-  function setPortal(next: Portal) {
+  function applyPortal(next: Portal) {
     setPortalState(next);
     writePortal(next).catch(() => {});
     router.replace(targetRoute(next) as never);
+  }
+
+  // El cambio real ocurre cuando el overlay ya cubre la pantalla, para que el
+  // salto de navegación y de colores no se vea.
+  function setPortal(next: Portal) {
+    if (busy.current) return;
+    if (next === portal) {
+      applyPortal(next);
+      return;
+    }
+    busy.current = true;
+    const timing = reduceMotion ? SWITCH_TIMING.reduced : SWITCH_TIMING.full;
+    setSwitching(next);
+    timers.current = [
+      setTimeout(() => {
+        applyPortal(next);
+        // Se descubre solo cuando el portal nuevo ya pintó, para que la salida
+        // no compita con el montaje de la pantalla.
+        Promise.all([afterNextPaint(), new Promise((r) => setTimeout(r, timing.hold))]).then(() => {
+          setSwitching(null);
+          timers.current.push(
+            setTimeout(() => {
+              busy.current = false;
+            }, timing.exit),
+          );
+        });
+      }, timing.enter),
+    ];
   }
 
   if (session && !ready) {
@@ -119,7 +198,7 @@ export function PortalProvider({ children }: { children: ReactNode }) {
 
   return (
     <PortalContext.Provider
-      value={{ portal, isDriver, driverStatus, setPortal, refreshDriverStatus }}
+      value={{ portal, switching, isDriver, driverStatus, setPortal, refreshDriverStatus }}
     >
       {children}
     </PortalContext.Provider>
@@ -130,4 +209,9 @@ export function usePortal(): PortalContextValue {
   const context = useContext(PortalContext);
   if (!context) throw new Error("usePortal debe usarse dentro de PortalProvider");
   return context;
+}
+
+/** Paleta hex del portal activo, para APIs que piden un color crudo (íconos). */
+export function usePortalColors(): PortalPalette {
+  return portalPalettes[usePortal().portal];
 }

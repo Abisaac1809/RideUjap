@@ -7,13 +7,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AccountCard } from "../../src/components/AccountCard";
 import { Avatar, Button, Text } from "../../src/components/ui";
 import { signOut, useSession } from "../../src/lib/auth-client";
-import { usePortal } from "../../src/lib/portal";
+import { usePortal, usePortalColors } from "../../src/lib/portal";
 import { colores } from "../../src/lib/tokens";
 
 export default function PerfilScreen() {
   const router = useRouter();
   const { data: session } = useSession();
   const { isDriver, setPortal } = usePortal();
+  const palette = usePortalColors();
   const [signingOut, setSigningOut] = useState(false);
 
   const user = session?.user;
@@ -34,7 +35,7 @@ export default function PerfilScreen() {
             <Text variant="muted">{user?.email}</Text>
           </View>
           <View className="flex-row items-center gap-1.5 rounded-full bg-primary-tint px-3 py-1">
-            <GraduationCap size={14} color={colores.primary} />
+            <GraduationCap size={14} color={palette.primary} />
             <Text className="font-sora-semibold text-xs text-primary">Comunidad UJAP</Text>
           </View>
         </View>

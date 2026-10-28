@@ -1,8 +1,10 @@
 import { Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colores } from "../lib/tokens";
+import { navbarBottomPadding } from "./ui/BottomNavbar";
 
 const SHADOW = {
   shadowColor: "#1a1614",
@@ -18,14 +20,15 @@ const SHADOW = {
  */
 export function PublishFab() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Publicar viaje"
       onPress={() => router.push("/publicar")}
-      style={SHADOW}
-      className="absolute bottom-24 right-5 h-14 w-14 items-center justify-center rounded-full bg-primary active:bg-primary-dark"
+      style={[SHADOW, { bottom: 72 + navbarBottomPadding(insets.bottom) }]}
+      className="absolute right-5 h-14 w-14 items-center justify-center rounded-full bg-primary active:bg-primary-dark"
     >
       <Plus size={26} color={colores.primaryInk} />
     </Pressable>
