@@ -5,7 +5,7 @@ import { Eye, EyeOff, Lock } from "lucide-react-native";
 import { colores } from "../../lib/tokens";
 import { Input, type InputProps } from "./Input";
 
-export interface PasswordInputProps extends Omit<InputProps, "secureTextEntry" | "rightIcon"> {}
+export type PasswordInputProps = Omit<InputProps, "secureTextEntry" | "rightIcon">;
 
 export function PasswordInput({ leftIcon, ...rest }: PasswordInputProps) {
   const [visible, setVisible] = useState(false);

@@ -1,3 +1,5 @@
+import { PHONE_PATTERN } from "@rideujap/shared";
+
 const meResponse = {
   type: "object",
   required: ["id", "name", "email", "image", "phone"],
@@ -19,7 +21,7 @@ const nameField = {
 
 const phoneField = {
   type: "string",
-  pattern: "^[0-9+()\\-\\s]{6,32}$",
+  pattern: PHONE_PATTERN,
 };
 
 export const getMeSchema = {
