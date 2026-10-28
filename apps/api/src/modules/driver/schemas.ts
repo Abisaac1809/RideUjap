@@ -57,7 +57,7 @@ const driverOnboardingBodySchema = {
   required: ["licenseNumber", "licenseExpiry", "vehicle"],
   properties: {
     licenseNumber: { type: "string", minLength: 1, maxLength: 40 },
-    licenseExpiry: { type: "string", minLength: 1 },
+    licenseExpiry: { type: "string", format: "date" },
     vehicle: vehicleBodySchema,
   },
 };

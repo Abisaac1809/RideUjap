@@ -96,21 +96,25 @@ export async function driverRoutes(app: FastifyInstance) {
       const { profile, vehicle: currentVehicle } = request.driver!;
       const body = request.body;
 
-      const [updatedProfile] = await db
-        .update(driverProfile)
-        .set({ licenseNumber: body.licenseNumber, licenseExpiry: body.licenseExpiry })
-        .where(eq(driverProfile.id, profile.id))
-        .returning();
+      const updated = await db.transaction(async (tx) => {
+        const [updatedProfile] = await tx
+          .update(driverProfile)
+          .set({ licenseNumber: body.licenseNumber, licenseExpiry: body.licenseExpiry })
+          .where(eq(driverProfile.id, profile.id))
+          .returning();
 
-      const [updatedVehicle] = await db
-        .update(vehicle)
-        .set({ ...body.vehicle })
-        .where(eq(vehicle.id, currentVehicle.id))
-        .returning();
+        const [updatedVehicle] = await tx
+          .update(vehicle)
+          .set({ ...body.vehicle })
+          .where(eq(vehicle.id, currentVehicle.id))
+          .returning();
+
+        return { profile: updatedProfile!, vehicle: updatedVehicle! };
+      });
 
       return {
-        driverProfile: toDriverProfileDto(updatedProfile!),
-        vehicle: toVehicleDto(updatedVehicle!),
+        driverProfile: toDriverProfileDto(updated.profile),
+        vehicle: toVehicleDto(updated.vehicle),
       };
     },
   );
