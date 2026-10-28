@@ -1,3 +1,5 @@
+import { MAX_SEATS, MAX_VEHICLE_YEAR, MIN_VEHICLE_YEAR } from "@rideujap/shared";
+
 const driverProfileSchema = {
   type: "object",
   required: ["id", "licenseNumber", "licenseExpiry", "createdAt"],
@@ -44,10 +46,10 @@ const vehicleBodySchema = {
   properties: {
     make: { type: "string", minLength: 1, maxLength: 60 },
     model: { type: "string", minLength: 1, maxLength: 60 },
-    year: { type: "integer", minimum: 1980, maximum: 2100 },
+    year: { type: "integer", minimum: MIN_VEHICLE_YEAR, maximum: MAX_VEHICLE_YEAR },
     color: { type: "string", minLength: 1, maxLength: 40 },
     plate: { type: "string", minLength: 1, maxLength: 20 },
-    seats: { type: "integer", minimum: 1, maximum: 8 },
+    seats: { type: "integer", minimum: 1, maximum: MAX_SEATS },
   },
 };
 

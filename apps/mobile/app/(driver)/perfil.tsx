@@ -2,7 +2,12 @@ import { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { Car, GraduationCap, LogOut, User } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { DriverStatusResponse } from "@rideujap/shared";
+import {
+  MAX_SEATS,
+  MAX_VEHICLE_YEAR,
+  MIN_VEHICLE_YEAR,
+  type DriverStatusResponse,
+} from "@rideujap/shared";
 
 import { AccountCard, DatoPerfil } from "../../src/components/AccountCard";
 import { Avatar, Button, Card, Input, Stepper, Text } from "../../src/components/ui";
@@ -83,7 +88,7 @@ function VehicleSection({
 
   async function onSave() {
     const yearNum = Number(year);
-    if (!Number.isInteger(yearNum) || yearNum < 1980 || yearNum > 2100) {
+    if (!Number.isInteger(yearNum) || yearNum < MIN_VEHICLE_YEAR || yearNum > MAX_VEHICLE_YEAR) {
       setStatus({ kind: "error", message: "Indica un año de vehículo válido." });
       return;
     }
@@ -155,7 +160,7 @@ function VehicleSection({
             />
             <View className="gap-2">
               <Text variant="label">Cupos del vehículo</Text>
-              <Stepper value={seats} onChange={setSeats} min={1} max={8} />
+              <Stepper value={seats} onChange={setSeats} min={1} max={MAX_SEATS} />
             </View>
             {status.kind === "error" ? (
               <Text className="text-xs text-red-500">{status.message}</Text>

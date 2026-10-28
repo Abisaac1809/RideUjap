@@ -3,7 +3,12 @@ import { Pressable, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Coins, TriangleAlert, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { AdmissionMode, PlaceDetails, TripDirection } from "@rideujap/shared";
+import {
+  MAX_SEATS,
+  type AdmissionMode,
+  type PlaceDetails,
+  type TripDirection,
+} from "@rideujap/shared";
 
 import { DIRECTION_COPY, RouteHint } from "../src/components/RouteHint";
 import { PlacePicker } from "../src/components/PlacePicker";
@@ -60,7 +65,7 @@ export default function PublicarScreen() {
   const { isDriver, driverStatus } = usePortal();
   const [days] = useState(buildDays);
 
-  const maxSeats = driverStatus?.vehicle?.seats ?? 8;
+  const maxSeats = driverStatus?.vehicle?.seats ?? MAX_SEATS;
 
   const [direction, setDirection] = useState<TripDirection>("inbound");
   const [place, setPlace] = useState<PlaceDetails | null>(null);
