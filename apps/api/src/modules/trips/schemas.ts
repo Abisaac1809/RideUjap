@@ -1,3 +1,5 @@
+import { MAX_SEATS } from "@rideujap/shared";
+
 export const moneyJsonSchema = {
   type: "object",
   required: ["usd", "ves", "rateDate", "stale"],
@@ -105,7 +107,7 @@ export const createTripSchema = {
       pointLng: { type: "number", minimum: -180, maximum: 180 },
       pointText: { type: "string", minLength: 1, maxLength: 200 },
       departureTime: { type: "string", minLength: 1 },
-      totalSeats: { type: "integer", minimum: 1, maximum: 8 },
+      totalSeats: { type: "integer", minimum: 1, maximum: MAX_SEATS },
       admissionMode: { type: "string", enum: ["auto", "request"] },
       fare: { type: "number", minimum: 0 },
     },

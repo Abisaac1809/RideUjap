@@ -3,6 +3,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { TriangleAlert, X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { MAX_SEATS, MAX_VEHICLE_YEAR, MIN_VEHICLE_YEAR } from "@rideujap/shared";
 
 import { Button, Card, Input, Stepper, Text } from "../../src/components/ui";
 import { ApiError, createDriverProfile } from "../../src/lib/api";
@@ -43,7 +44,7 @@ export default function DriverOnboardingScreen() {
       setStatus({ kind: "error", message: "Completa todos los datos del vehículo." });
       return;
     }
-    if (!Number.isInteger(yearNum) || yearNum < 1980 || yearNum > 2100) {
+    if (!Number.isInteger(yearNum) || yearNum < MIN_VEHICLE_YEAR || yearNum > MAX_VEHICLE_YEAR) {
       setStatus({ kind: "error", message: "Indica un año de vehículo válido." });
       return;
     }
@@ -140,7 +141,7 @@ export default function DriverOnboardingScreen() {
           />
           <View className="gap-2">
             <Text variant="label">Cupos del vehículo</Text>
-            <Stepper value={seats} onChange={setSeats} min={1} max={8} />
+            <Stepper value={seats} onChange={setSeats} min={1} max={MAX_SEATS} />
           </View>
         </View>
 

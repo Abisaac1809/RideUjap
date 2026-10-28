@@ -1,14 +1,22 @@
 import { useState } from "react";
 import { ScrollView, View } from "react-native";
-import { Car, GraduationCap, LogOut, Mail, Phone, User } from "lucide-react-native";
+import { Car, GraduationCap, LogOut, User } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { DriverStatusResponse } from "@rideujap/shared";
+import {
+  MAX_SEATS,
+  MAX_VEHICLE_YEAR,
+  MIN_VEHICLE_YEAR,
+  type DriverStatusResponse,
+} from "@rideujap/shared";
 
-import { Avatar, Button, Card, IconBadge, Input, Stepper, Text } from "../../src/components/ui";
+import { AccountCard, DatoPerfil } from "../../src/components/AccountCard";
+import { Avatar, Button, Card, Input, Stepper, Text } from "../../src/components/ui";
 import { ApiError, updateDriverProfile } from "../../src/lib/api";
 import { signOut, useSession } from "../../src/lib/auth-client";
 import { usePortal } from "../../src/lib/portal";
 import { colores } from "../../src/lib/tokens";
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 type EditStatus = { kind: "idle" } | { kind: "loading" } | { kind: "error"; message: string };
 
@@ -39,28 +47,7 @@ export default function DriverPerfilScreen() {
           </View>
         </View>
 
-        <View className="gap-2">
-          <Text variant="label" className="px-1">
-            Datos de la cuenta
-          </Text>
-          <Card elevated className="gap-5">
-            <DatoPerfil
-              icono={<User size={18} color={colores.primary} />}
-              etiqueta="Nombre"
-              valor={user?.name}
-            />
-            <DatoPerfil
-              icono={<Mail size={18} color={colores.primary} />}
-              etiqueta="Correo"
-              valor={user?.email}
-            />
-            <DatoPerfil
-              icono={<Phone size={18} color={colores.primary} />}
-              etiqueta="Teléfono"
-              valor={user?.phone}
-            />
-          </Card>
-        </View>
+        <AccountCard />
 
         <VehicleSection driverStatus={driverStatus} onSaved={refreshDriverStatus} />
 
@@ -74,28 +61,6 @@ export default function DriverPerfilScreen() {
         />
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function DatoPerfil({
-  icono,
-  etiqueta,
-  valor,
-}: {
-  icono: React.ReactNode;
-  etiqueta: string;
-  valor?: string | null;
-}) {
-  return (
-    <View className="flex-row items-center gap-3">
-      <IconBadge tone="primary" size="md">
-        {icono}
-      </IconBadge>
-      <View className="flex-1">
-        <Text variant="label">{etiqueta}</Text>
-        <Text>{valor ?? "—"}</Text>
-      </View>
-    </View>
   );
 }
 
@@ -122,10 +87,36 @@ function VehicleSection({
   const [status, setStatus] = useState<EditStatus>({ kind: "idle" });
 
   if (!driverStatus?.driverProfile || !driverStatus.vehicle) return null;
+  const { driverProfile, vehicle } = driverStatus;
+
+  function toggle() {
+    setLicenseNumber(driverProfile.licenseNumber);
+    setLicenseExpiry(driverProfile.licenseExpiry);
+    setMake(vehicle.make);
+    setModel(vehicle.model);
+    setYear(String(vehicle.year));
+    setColor(vehicle.color);
+    setPlate(vehicle.plate);
+    setSeats(vehicle.seats);
+    setStatus({ kind: "idle" });
+    setEditing((v) => !v);
+  }
 
   async function onSave() {
+    if (!licenseNumber.trim()) {
+      setStatus({ kind: "error", message: "Escribe tu número de licencia." });
+      return;
+    }
+    if (!DATE_RE.test(licenseExpiry.trim())) {
+      setStatus({ kind: "error", message: "La fecha de vencimiento debe ser AAAA-MM-DD." });
+      return;
+    }
+    if (!make.trim() || !model.trim() || !color.trim() || !plate.trim()) {
+      setStatus({ kind: "error", message: "Completa todos los datos del vehículo." });
+      return;
+    }
     const yearNum = Number(year);
-    if (!Number.isInteger(yearNum) || yearNum < 1980 || yearNum > 2100) {
+    if (!Number.isInteger(yearNum) || yearNum < MIN_VEHICLE_YEAR || yearNum > MAX_VEHICLE_YEAR) {
       setStatus({ kind: "error", message: "Indica un año de vehículo válido." });
       return;
     }
@@ -161,7 +152,8 @@ function VehicleSection({
           size="sm"
           variant="ghost"
           label={editing ? "Cancelar" : "Editar"}
-          onPress={() => setEditing((v) => !v)}
+          disabled={status.kind === "loading"}
+          onPress={toggle}
         />
       </View>
 
@@ -197,7 +189,7 @@ function VehicleSection({
             />
             <View className="gap-2">
               <Text variant="label">Cupos del vehículo</Text>
-              <Stepper value={seats} onChange={setSeats} min={1} max={8} />
+              <Stepper value={seats} onChange={setSeats} min={1} max={MAX_SEATS} />
             </View>
             {status.kind === "error" ? (
               <Text className="text-xs text-red-500">{status.message}</Text>
@@ -214,12 +206,12 @@ function VehicleSection({
             <DatoPerfil
               icono={<User size={18} color={colores.primary} />}
               etiqueta="Licencia"
-              valor={driverStatus.driverProfile.licenseNumber}
+              valor={driverProfile.licenseNumber}
             />
             <DatoPerfil
               icono={<Car size={18} color={colores.primary} />}
               etiqueta="Vehículo"
-              valor={`${driverStatus.vehicle.make} ${driverStatus.vehicle.model} · ${driverStatus.vehicle.plate}`}
+              valor={`${vehicle.make} ${vehicle.model} · ${vehicle.plate}`}
             />
           </>
         )}

@@ -98,9 +98,11 @@ export function MyTripsList({ bucket, role }: MyTripsListProps) {
             (item) => !role || item.role === role,
           )}
           bucket={bucket}
+          role={role}
           onDecide={onDecide}
           decidingId={decidingId}
           onPublish={() => router.push("/publicar")}
+          onSearch={() => router.navigate("/(passenger)")}
         />
       )}
     </ScrollView>
@@ -115,18 +117,29 @@ function needsAction(item: MyTripItem): boolean {
     : item.reservations.some((r) => r.status === "requested");
 }
 
+/** Cada portal solo menciona lo que ofrece: el pasajero busca, el conductor publica. */
+const UPCOMING_EMPTY_COPY: Record<MyTripItem["role"] | "all", string> = {
+  passenger: "No tienes reservas próximas.",
+  driver: "No tienes próximos viajes publicados.",
+  all: "No tienes viajes próximos. Publica uno o busca un cupo desde el inicio.",
+};
+
 function List({
   items,
   bucket,
+  role,
   onDecide,
   decidingId,
   onPublish,
+  onSearch,
 }: {
   items: MyTripItem[];
   bucket: "upcoming" | "history";
+  role?: MyTripItem["role"];
   onDecide: (id: string, status: ReservationDecision) => void;
   decidingId: string | null;
   onPublish: () => void;
+  onSearch: () => void;
 }) {
   const ordered =
     bucket === "upcoming"
@@ -140,9 +153,13 @@ function List({
         {bucket === "upcoming" ? (
           <>
             <Text variant="muted" className="text-center">
-              No tienes viajes próximos. Publica uno o busca un cupo desde el inicio.
+              {UPCOMING_EMPTY_COPY[role ?? "all"]}
             </Text>
-            <Button label="Publicar viaje" onPress={onPublish} />
+            {role === "passenger" ? (
+              <Button label="Buscar viajes" onPress={onSearch} />
+            ) : (
+              <Button label="Publicar viaje" onPress={onPublish} />
+            )}
           </>
         ) : (
           <Text variant="muted" className="text-center">

@@ -4,6 +4,7 @@ import type {
   DriverProfileUpdateBody,
   DriverStatusResponse,
   FareEstimateResponse,
+  MeResponse,
   MyTripsResponse,
   PlaceDetails,
   PlaceSuggestion,
@@ -12,6 +13,7 @@ import type {
   ReservationResponse,
   Trip,
   TripDirection,
+  UpdateMeBody,
 } from "@rideujap/shared";
 
 import { authRequestInit } from "./auth-client";
@@ -126,6 +128,10 @@ export function decideReservation(
     method: "PATCH",
     body: JSON.stringify({ status }),
   });
+}
+
+export function updateMe(body: UpdateMeBody): Promise<MeResponse> {
+  return apiFetch<MeResponse>("/me", { method: "PATCH", body: JSON.stringify(body) });
 }
 
 export function getDriverProfile(): Promise<DriverStatusResponse> {

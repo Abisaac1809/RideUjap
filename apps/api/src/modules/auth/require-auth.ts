@@ -15,7 +15,7 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
   });
 
   if (!session) {
-    reply.code(401).send({ error: "Unauthorized" });
+    reply.code(401).send({ error: "Tu sesión expiró. Inicia sesión de nuevo" });
     return reply;
   }
 

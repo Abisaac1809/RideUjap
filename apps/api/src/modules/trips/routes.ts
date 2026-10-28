@@ -41,7 +41,7 @@ export async function tripRoutes(app: FastifyInstance) {
       const { direction, lat, lng, time, destination } = request.query;
 
       if ((lat === undefined) !== (lng === undefined)) {
-        throw httpError(400, "lat and lng must be provided together");
+        throw httpError(400, "Debes indicar la latitud y la longitud juntas");
       }
 
       const conditions: SQL[] = [
@@ -56,7 +56,7 @@ export async function tripRoutes(app: FastifyInstance) {
       if (time) {
         const at = new Date(time);
         if (Number.isNaN(at.getTime())) {
-          throw httpError(400, "time must be a valid ISO date-time");
+          throw httpError(400, "La hora de búsqueda no es válida");
         }
         const from = new Date(at.getTime() - TIME_WINDOW_MS);
         const to = new Date(at.getTime() + TIME_WINDOW_MS);
@@ -98,10 +98,10 @@ export async function tripRoutes(app: FastifyInstance) {
       const body = request.body;
       const departureTime = new Date(body.departureTime);
       if (Number.isNaN(departureTime.getTime())) {
-        throw httpError(400, "departureTime must be a valid ISO date-time");
+        throw httpError(400, "La hora de salida no es válida");
       }
       if (departureTime.getTime() <= Date.now()) {
-        throw httpError(400, "departureTime must be in the future");
+        throw httpError(400, "La hora de salida debe ser en el futuro");
       }
 
       const seats = effectiveSeats(body.totalSeats, request.driver!.vehicle.seats);
@@ -123,7 +123,7 @@ export async function tripRoutes(app: FastifyInstance) {
         .returning();
 
       if (!row) {
-        throw httpError(500, "Failed to create trip");
+        throw httpError(500, "No se pudo publicar el viaje");
       }
 
       const toMoney = await exchangeRateService.getConverter();
